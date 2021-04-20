@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<silences>
+    <silence from="PT3M0S" until="PT3M5S" />
+    <silence from="PT3M15S" until="PT3M17S" />
+    <silence from="PT4M5S" until="PT4M6S" />
+    <silence from="PT4M50S" until="PT4M55S" />
+    <silence from="PT5M" until="PT5M1S" />
+    <silence from="PT5M10S" until="PT5M12S" />
+    <silence from="PT5M15S" until="PT5M17S" />
+    <silence from="PT5M59S" until="PT6M1S" />
+    <silence from="PT6M2S" until="PT6M3S" />
+    <silence from="PT8M2S" until="PT8M3S" />
+</silences>
