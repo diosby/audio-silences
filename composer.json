@@ -1,0 +1,17 @@
+{
+    "name": "dios/silence",
+    "authors": [
+        {
+            "name": "Oleg Dmitrochenko",
+            "email": "o.dmitrochenko@general-soft.by"
+        }
+    ],
+    "autoload": {
+        "psr-4": {"SegmentGenerator\\": "src/"}
+    },
+    "minimum-stability": "dev",
+    "require": {
+        "php": "^7.2",
+        "ext-libxml": "*"
+    }
+}
