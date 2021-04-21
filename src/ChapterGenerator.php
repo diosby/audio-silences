@@ -5,6 +5,9 @@ namespace SegmentGenerator;
 use SegmentGenerator\Contracts\ChapterAnalyzer;
 use SegmentGenerator\Contracts\DebugMode;
 
+/**
+ * Makes chapters by silences.
+ */
 class ChapterGenerator implements DebugMode
 {
     use DebugLog;
@@ -67,10 +70,10 @@ class ChapterGenerator implements DebugMode
     protected function finishChapter(Silence $silence): void
     {
         // Adds the finish time to the last chapter.
-        $this->getChapter()->finish($silence->getFrom());
+        $this->getChapter()->finishBySilence($silence);
         $this->nextChapter();
         // Adds the start time to the new chapter.
-        $this->getChapter()->start($silence->getUntil());
+        $this->getChapter()->startBySilence($silence);
     }
 
     /**
@@ -81,7 +84,7 @@ class ChapterGenerator implements DebugMode
      */
     protected function next(Silence $silence): void
     {
-        $this->getChapter()->plus($silence->getFrom(), $silence->getUntil());
+        $this->getChapter()->plusBySilence($silence);
     }
 
     /**
@@ -148,22 +151,5 @@ class ChapterGenerator implements DebugMode
     protected function pause(int $index, Silence $silence): void
     {
         $this->log("Silence %d is the transition: %d.\n", $index, $silence->getDuration());
-    }
-
-    /**
-     * Shows info about an undefined silence.
-     *
-     * @param int $index
-     * @param Silence $silence
-     * @return void
-     */
-    protected function undefined(int $index, Silence $silence): void
-    {
-        $this->log(
-            "Silence %d is an unsefined: %d, from %s until %s.\n",
-            $index, $silence->getDuration(),
-            (string) $silence->getFrom(),
-            (string) $silence->getUntil()
-        );
     }
 }
