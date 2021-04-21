@@ -23,12 +23,9 @@ $longopts[] = 'transition:';
 // A deviation of the transition
 $longopts[] = 'dtransition:';
 
-// A chapter pause
-$shortopts .= 'p:';
-$longopts[] = 'pause:';
-
-// A deviation of the pause
-$longopts[] = 'dpause:';
+// A minimal silence between parts (segments) of a chapter
+$shortopts .= 'm:';
+$longopts[] = 'min-silence:';
 
 // A duration of a segment in multiple segments
 $shortopts .= 'd:';
@@ -47,8 +44,7 @@ $options = getopt($shortopts, $longopts);
 $path = $options['source'] ?? $options['s'] ?? null;
 $transition = $options['transition'] ?? $options['t'] ?? null;
 $deviationOfTransition = $options['dtransition'] ?? 250;
-$pause = $options['pause'] ?? $options['p'] ?? null;
-$deviationOfPause = $options['dpause'] ?? 100;
+$minSilence = $options['min-silence'] ?? $options['m'] ?? null;
 $maxDuration = $options['max-duration'] ?? $options['d'] ?? null;
 $output = $options['output'] ?? $options['o'] ?? null;
 $debug = isset($options['debug']) ? empty($options['debug']) : false;
@@ -61,14 +57,6 @@ if (empty($transition)) {
     exit("The chapter transition wasn't given. Set the transition through --transition <duration> or -t <duration>. The duration should be greater than zero.\n");
 } elseif (!is_numeric($transition)) {
     exit("The given transition isn't a number. The value should be an integer.\n");
-}
-
-if (empty($pause)) {
-    exit("The pause for chapters wasn't given. Set the pause through --pause <duration> or -p <duration>. The duration should be greater than zero and less than the transition.\n");
-} elseif (!is_numeric($pause)) {
-    exit("The given pause isn't a number. The value should be an integer.\n");
-} elseif ($pause >= $transition) {
-    exit("The given pause is greater than the transition. The value should be less than the transition.\n");
 }
 
 if (!file_exists($path)) {
