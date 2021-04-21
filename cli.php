@@ -6,7 +6,6 @@ use SegmentGenerator\ChapterAnalyzer;
 use SegmentGenerator\ChapterGenerator;
 use SegmentGenerator\ChapterSegmentator;
 use SegmentGenerator\Interval;
-use SegmentGenerator\MinTransitionChapterAnalyzer;
 use SegmentGenerator\Silence;
 
 // Expected arguments of CLI.
@@ -35,10 +34,6 @@ $longopts[] = 'dpause:';
 $shortopts .= 'd:';
 $longopts[] = 'max-duration:';
 
-// An algorithm type
-$shortopts .= 'a:';
-$longopts[] = 'algorithm:';
-
 // An output file
 $shortopts .= 'o:';
 $longopts[] = 'output:';
@@ -57,7 +52,6 @@ $deviationOfPause = $options['dpause'] ?? 100;
 $maxDuration = $options['max-duration'] ?? $options['d'] ?? null;
 $output = $options['output'] ?? $options['o'] ?? null;
 $debug = isset($options['debug']) ? empty($options['debug']) : false;
-$analyzerType = $options['algorithm'] ?? $options['a'] ?? 'default';
 
 if (empty($path)) {
     exit("The path to a file wasn't given. Set the path to a file through --source <path> or -s <path>.\n");
@@ -89,15 +83,7 @@ foreach ($xml as $item) {
     $silences[] = new Silence(new Interval($item['from']), new Interval($item['until']));
 }
 
-switch ($analyzerType) {
-    case 'mt':
-        $analizer = new MinTransitionChapterAnalyzer($transition, $deviationOfTransition);
-        break;
-    default:
-        $analizer = new ChapterAnalyzer($transition, $pause, $deviationOfTransition, $deviationOfPause);
-        break;
-}
-
+$analizer = new ChapterAnalyzer($transition, $deviationOfTransition);
 $generator = new ChapterGenerator($analizer);
 $generator->debugMode($debug);
 $chapters = $generator->fromSilences($silences);
@@ -105,16 +91,13 @@ $chapters = $generator->fromSilences($silences);
 // Generates template titles.
 $chapters->fillTitles();
 
-$segmentator = new ChapterSegmentator($maxDuration);
+$segmentator = new ChapterSegmentator($maxDuration, $minSilence);
 $segmentator->debugMode($debug);
 $segments = $segmentator->segment($chapters);
 
 printf("The file: %s.\n", $path);
-printf("The algorithm: %s.\n", $analyzerType);
 printf("The transition: %dms.\n", $transition);
 printf("The deviation of the transition: %dms.\n", $deviationOfTransition);
-printf("The pause: %dms.\n", $pause);
-printf("The deviation of the pause: %dms.\n", $deviationOfPause);
 printf("A number of the chapters: %d.\n", $chapters->getNumberOfChapters());
 printf("A number of the parts of the chapters: %d.\n", $chapters->getNumberOfParts());
 printf("A duration of the chapters without silences between chapters: %dms.\n", $chapters->getDuration());

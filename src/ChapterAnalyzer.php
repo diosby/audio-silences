@@ -5,47 +5,39 @@ namespace SegmentGenerator;
 use SegmentGenerator\Contracts\ChapterAnalyzer as ServiceInterface;
 use SegmentGenerator\Contracts\Duration;
 
+/**
+ * The algorithm compares durations only with the min duration of the transition.
+ */
 class ChapterAnalyzer implements ServiceInterface
 {
-    protected $silenceOfTransition;
+    protected $minTransition;
 
     protected $deviationOfTransition;
 
-    protected $silenceOfPause;
-
-    protected $deviationOfPause;
-
-    public function __construct(
-        int $silenceOfTransition,
-        int $silenceOfPause,
-        int $deviationOfTransition = 250,
-        int $deviationOfPause = 100
-    ) {
-        $this->silenceOfTransition = $silenceOfTransition;
+    public function __construct(int $minTransition, int $deviationOfTransition = 250)
+    {
+        $this->minTransition = $minTransition;
         $this->deviationOfTransition = $deviationOfTransition;
-        $this->silenceOfPause = $silenceOfPause;
-        $this->deviationOfPause = $deviationOfPause;
     }
 
+    /**
+     * Checks whether the duration matches the transition.
+     *
+     * @param Duration $duration
+     * @return bool
+     */
     public function isTransition(Duration $duration): bool
     {
         return $this->getMinDurationOfTransition() <= $duration->getDuration();
     }
 
+    /**
+     * Returns a min duration of the transition with the deviation.
+     *
+     * @return int
+     */
     public function getMinDurationOfTransition(): int
     {
-        return $this->silenceOfTransition - $this->deviationOfTransition;
-    }
-
-    public function isPause(Duration $duration): bool
-    {
-        $time = $duration->getDuration();
-
-        return $time <= $this->getMaxTimeOfPause();
-    }
-
-    public function getMaxTimeOfPause(): int
-    {
-        return $this->silenceOfPause + $this->deviationOfPause;
+        return $this->minTransition - $this->deviationOfTransition;
     }
 }
