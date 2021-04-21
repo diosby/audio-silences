@@ -1,18 +1,16 @@
 # Install
 
-Install PHP 7.2 and the libxml extention.
+Install PHP 7.2 or more higher version with libxml extention to use the package.
 
 # Basic
 
 ```bash
-php cli.php --source <source-file> -t <transition> [--dtransition <milliseconds=250>] -m <min-silence> [-d <duration>] [-o <output-file>] [-a <algorythm>] [--debug]
+php cli.php --source <source-file> -t <transition> [--dtransition <milliseconds=250>] -m <min-silence> [-d <duration>] [-o <output-file>] [--debug]
 ```
 
 The `transition`, `min-silence` and `duration` use milliseconds. Also the `dtransition` uses them.
 
 The `source-file` and `output-file` are paths to files.
-
-The `algorythm` is the other parser algorythm of silences.
 
 *Examples*
 
