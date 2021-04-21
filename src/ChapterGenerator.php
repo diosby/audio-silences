@@ -48,11 +48,8 @@ class ChapterGenerator implements DebugMode
             if ($this->analizer->isTransition($silence)) {
                 $this->transition($index, $silence);
                 $this->finishChapter($silence);
-            } elseif ($this->analizer->isPause($silence)) {
-                $this->pause($index, $silence);
-                $this->next($silence);
             } else {
-                $this->undefined($index, $silence);
+                $this->pause($index, $silence);
                 $this->next($silence);
             }
         }
