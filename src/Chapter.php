@@ -34,6 +34,22 @@ class Chapter implements \Countable
     }
 
     /**
+     * Returns inner silences of the chapter.
+     *
+     * @return Silence[]
+     */
+    public function getInnerSilences(): array
+    {
+        $silences = [];
+
+        for ($i = 1; $i < $this->count() - 1; $i++) {
+            $silences[] = $this->parts[$i]->getSilenceAfter();
+        }
+
+        return array_values(array_filter($silences));
+    }
+
+    /**
      * Sets the given title to the chapter.
      *
      * @param string $title
@@ -54,11 +70,43 @@ class Chapter implements \Countable
         return $this->title;
     }
 
+    /**
+     * Checks whether the given chapter is the first.
+     *
+     * @param ChapterPart $part
+     * @return bool
+     */
+    public function isFirst(ChapterPart $part): bool
+    {
+        return $this->first() ? $this->first() === $part : false;
+    }
+
+    /**
+     * Checks whether the given chapter is the last.
+     *
+     * @param ChapterPart $part
+     * @return bool
+     */
+    public function isLast(ChapterPart $part): bool
+    {
+        return $this->last() ? $this->last() === $part : false;
+    }
+
+    /**
+     * Returns the first part of the chapter.
+     *
+     * @return ChapterPart|null
+     */
     public function first(): ?ChapterPart
     {
         return $this->parts[0] ?? null;
     }
 
+    /**
+     * Returns the last part of the chapter.
+     *
+     * @return ChapterPart|null
+     */
     public function last(): ?ChapterPart
     {
         return $this->parts[$this->count() - 1] ?? null;
@@ -74,6 +122,19 @@ class Chapter implements \Countable
     public function start(Interval $start): ChapterPart
     {
         return $this->parts[] = new ChapterPart($start, 0, $this);
+    }
+
+    /**
+     * Add a new part of the chapter by the given silence before the part.
+     * Sets the silence before the part.
+     * Returns the new part.
+     *
+     * @param Silence $silence
+     * @return ChapterPart
+     */
+    public function startBySilence(Silence $silence): ChapterPart
+    {
+        return $this->start($silence->getUntil())->setSilenceBefore($silence);
     }
 
     /**
@@ -93,6 +154,21 @@ class Chapter implements \Countable
     }
 
     /**
+     * Adds a new part of the chapter by the given silence between parts.
+     * Sets the silence after the part.
+     * Returns the new chapter part.
+     *
+     * @param Silence $silence
+     * @return ChapterPart
+     */
+    public function plusBySilence(Silence $silence): ChapterPart
+    {
+        $this->finish($silence->getFrom())->setSilenceAfter($silence);
+
+        return $this->start($silence->getUntil())->setSilenceBefore($silence);
+    }
+
+    /**
      * Finishes the last part of the chapter by the given interval of the last
      * offset.
      *
@@ -109,6 +185,19 @@ class Chapter implements \Countable
         }
 
         return $this->last();
+    }
+
+    /**
+     * Finishes the last part of the chapter by the given silence after the part.
+     * Sets the silence after the part.
+     * Returns the new part.
+     *
+     * @param Silence $silence
+     * @return ChapterPart
+     */
+    public function finishBySilence(Silence $silence): ChapterPart
+    {
+        return $this->finish($silence->getFrom())->setSilenceAfter($silence);
     }
 
     /**
