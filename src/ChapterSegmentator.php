@@ -11,13 +11,46 @@ class ChapterSegmentator implements DebugMode
 {
     use DebugLog;
 
-    protected $maxDurationOfSegment;
+    /**
+     * A recommended max duration of a segment.
+     *
+     * @var int|null
+     */
+    protected $maxSegment;
+
+    /**
+     * A min duration of a silence between segments.
+     *
+     * @var int|null
+     */
+    protected $minSilence;
 
     private $segments = [];
 
-    public function __construct(int $maxDurationOfSegment = null)
+    public function __construct(int $maxSegment = null, int $minSilence = null)
     {
-        $this->maxDurationOfSegment = $maxDurationOfSegment;
+        $this->maxSegment = $maxSegment;
+        $this->minSilence = $minSilence;
+    }
+
+    /**
+     * A recommended max duration of a segment.
+     *
+     * @return int|null
+     */
+    public function getMaxDurationOfSegment(): ?int
+    {
+        return $this->maxSegment;
+    }
+
+    /**
+     * Returns a min duration of a silence between segments.
+     *
+     * @return int|null
+     */
+    public function getMinSilence(): ?int
+    {
+        return $this->minSilence;
     }
 
     /**
@@ -31,7 +64,7 @@ class ChapterSegmentator implements DebugMode
         $this->segments = [];
 
         foreach ($chapters->getItems() as $key => $chapter) {
-            if (empty($this->maxDurationOfSegment) || $this->isFull($chapter)) {
+            if (empty($this->maxSegment) || $this->isUnbreakable($chapter)) {
                 $this->fullChapter($chapter, $key + 1);
             } else {
                 $this->multipleChapter($chapter, $key + 1);
@@ -42,14 +75,36 @@ class ChapterSegmentator implements DebugMode
     }
 
     /**
-     * Checks whethet the given chapter is full.
+     * Checks whethet the given chapter is unbreakable.
+     * The unbreakable chapter is that that has one part or the max duration of
+     * a segment greater then the chapter or the min silence isn't in
+     * the chapter.
      *
      * @param Chapter $chapter
      * @return bool
      */
-    public function isFull(Chapter $chapter): bool
+    public function isUnbreakable(Chapter $chapter): bool
     {
-        return $this->maxDurationOfSegment >= $chapter->getDuration() || $chapter->count() === 1;
+        return $chapter->count() === 1
+            || (isset($this->maxSegment) && $this->maxSegment > $chapter->getDuration())
+            || (isset($this->minSilence) && !$this->doesChapterHaveLongSilence($chapter))
+        ;
+    }
+
+    /**
+     * Checks whether the given chapter has any long silences.
+     *
+     * @param Chapter $chapter
+     * @return bool
+     */
+    protected function doesChapterHaveLongSilence(Chapter $chapter): bool
+    {
+        $silences = $chapter->getInnerSilences();
+        $greatSilences = array_filter($silences, function (Silence $silence) {
+            return $silence->getDuration() >= $this->minSilence;
+        });
+
+        return count($greatSilences);
     }
 
     /**
@@ -81,7 +136,7 @@ class ChapterSegmentator implements DebugMode
         foreach ($chapter->getParts() as $key => $part) {
             $this->log("%d.%d. A part of segments: %dms.\n", $index, $key + 1, $part->getDuration());
 
-            if ($this->maxDurationOfSegment <= $part->getDuration()) {
+            if ($this->maxSegment <= $part->getDuration()) {
                 // It is a big segment.
                 $this->log("[L] The part is long.\n");
                 $this->partialSegment($part, ++$numberOfPart);
@@ -91,7 +146,7 @@ class ChapterSegmentator implements DebugMode
                 $this->log("[F] A new start part of multiple segments.\n");
                 $this->partialSegment($part, ++$numberOfPart);
                 $duration += $part->getDuration();
-            } elseif ($this->maxDurationOfSegment <= $duration + $part->getDuration()) {
+            } elseif ($this->maxSegment <= $duration + $part->getDuration() && $this->isPartBreakable($part)) {
                 // The part overloads the duration.
                 $this->log("[O] The duration is oversize: %d.\n", $duration + $part->getDuration());
                 $this->partialSegment($part, ++$numberOfPart);
@@ -119,5 +174,19 @@ class ChapterSegmentator implements DebugMode
         $this->segments[] = $lastSegment = new Segment($part->getOffset(), $part->getParent()->getTitle());
         $title = $lastSegment->getTitle() ? $lastSegment->getTitle() . ", part $index" : "Part $index";
         $lastSegment->setTitle($title);
+    }
+
+    /**
+     * Checks whether the given part is breakable.
+     *
+     * @param ChapterPart $part
+     * @return bool
+     */
+    protected function isPartBreakable(ChapterPart $part): bool
+    {
+        return !empty($this->minSilence)
+            && $part->getSilenceAfter()->getDuration() >= $this->minSilence
+            && $part->getSilenceBefore()->getDuration() >= $this->minSilence
+        ;
     }
 }
