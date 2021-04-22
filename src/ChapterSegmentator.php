@@ -185,8 +185,8 @@ class ChapterSegmentator implements DebugMode
     protected function isPartBreakable(ChapterPart $part): bool
     {
         return !empty($this->minSilence)
-            && $part->getSilenceAfter()->getDuration() >= $this->minSilence
-            && $part->getSilenceBefore()->getDuration() >= $this->minSilence
+            && (!$part->isLast() && $part->getSilenceAfter()->getDuration() >= $this->minSilence)
+            && (!$part->isFirst() && $part->getSilenceBefore()->getDuration() >= $this->minSilence)
         ;
     }
 }
