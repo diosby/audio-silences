@@ -20,9 +20,6 @@ $longopts[] = 'source:';
 $shortopts .= 't:';
 $longopts[] = 'transition:';
 
-// A deviation of the transition
-$longopts[] = 'dtransition:';
-
 // A minimal silence between parts (segments) of a chapter
 $shortopts .= 'm:';
 $longopts[] = 'min-silence:';
@@ -43,7 +40,6 @@ $options = getopt($shortopts, $longopts);
 // Gets arguments.
 $path = $options['source'] ?? $options['s'] ?? null;
 $transition = $options['transition'] ?? $options['t'] ?? null;
-$deviationOfTransition = $options['dtransition'] ?? 250;
 $minSilence = $options['min-silence'] ?? $options['m'] ?? null;
 $maxDuration = $options['max-duration'] ?? $options['d'] ?? null;
 $output = $options['output'] ?? $options['o'] ?? null;
@@ -71,7 +67,7 @@ foreach ($xml as $item) {
     $silences[] = new Silence(new Interval($item['from']), new Interval($item['until']));
 }
 
-$analizer = new ChapterAnalyzer($transition, $deviationOfTransition);
+$analizer = new ChapterAnalyzer($transition);
 $generator = new ChapterGenerator($analizer);
 $generator->debugMode($debug);
 $chapters = $generator->fromSilences($silences);
@@ -85,7 +81,6 @@ $segments = $segmentator->segment($chapters);
 
 printf("The file: %s.\n", $path);
 printf("The transition: %dms.\n", $transition);
-printf("The deviation of the transition: %dms.\n", $deviationOfTransition);
 printf("A number of the chapters: %d.\n", $chapters->getNumberOfChapters());
 printf("A number of the parts of the chapters: %d.\n", $chapters->getNumberOfParts());
 printf("A duration of the chapters without silences between chapters: %dms.\n", $chapters->getDuration());

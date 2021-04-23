@@ -5,10 +5,10 @@ Install PHP 7.2 or more higher version with libxml extention to use the package.
 # Basic
 
 ```bash
-php cli.php --source <source-file> -t <transition> [--dtransition <milliseconds=250>] -m <min-silence> [-d <duration>] [-o <output-file>] [--debug]
+php cli.php --source <source-file> -t <transition> -m <min-silence> [-d <duration>] [-o <output-file>] [--debug]
 ```
 
-The `transition`, `min-silence` and `duration` use milliseconds. Also the `dtransition` uses them.
+The `transition`, `min-silence` and `duration` use milliseconds.
 
 The `source-file` and `output-file` are paths to files.
 
@@ -19,8 +19,8 @@ The `source-file` and `output-file` are paths to files.
 php cli.php --source silence-files/silence4.xml -t 5000
 # Save JSON and show basic info, use the min silence of a chapter part
 php cli.php --source silence-files/silence4.xml -t 5000 -m 2000 -o ./json
-# Save JSON, show basic info, use the deviation of the transition, use the max duration of a segment
-php cli.php --source silence-files/silence4.xml -t 5000 -dtransition 250 -m 2000 -d 180000  --output ./json
+# Save JSON, show basic info, use the max duration of a segment
+php cli.php --source silence-files/silence4.xml -t 5000 -m 2000 -d 180000  --output ./json
 # Show JSON, show debug info
 php cli.php --source ./silence-files/silence4.xml -t 5000 -m 2000 -d 180000 --debug
 ```
@@ -41,13 +41,12 @@ The path to an XML file with silence intervals.
 </silences>
 ```
 
-## Transition and its deviation
+## Transition
 
-`-t <milliseconds> [--dtransition <milliseconds=250>]`
-`--transition <milliseconds> [--dtransition <milliseconds=250>]`
+`-t <milliseconds>`
+`--transition <milliseconds>`
 
 The silence duration which reliably indicates a chapter transition.
-The `dtransition`is a deviation of the transition.
 
 ## Min-silence
 

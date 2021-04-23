@@ -12,12 +12,9 @@ class ChapterAnalyzer implements ServiceInterface
 {
     protected $minTransition;
 
-    protected $deviationOfTransition;
-
-    public function __construct(int $minTransition, int $deviationOfTransition = 250)
+    public function __construct(int $minTransition)
     {
         $this->minTransition = $minTransition;
-        $this->deviationOfTransition = $deviationOfTransition;
     }
 
     /**
@@ -28,16 +25,6 @@ class ChapterAnalyzer implements ServiceInterface
      */
     public function isTransition(Duration $duration): bool
     {
-        return $this->getMinDurationOfTransition() <= $duration->getDuration();
-    }
-
-    /**
-     * Returns a min duration of the transition with the deviation.
-     *
-     * @return int
-     */
-    public function getMinDurationOfTransition(): int
-    {
-        return $this->minTransition - $this->deviationOfTransition;
+        return $this->minTransition <= $duration->getDuration();
     }
 }
