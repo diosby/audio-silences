@@ -12,7 +12,7 @@ class ChapterGenerator implements DebugMode
 {
     use DebugLog;
 
-    protected $analizer;
+    protected $analyzer;
 
     /**
      * Chapters of the last generation.
@@ -28,9 +28,9 @@ class ChapterGenerator implements DebugMode
      */
     private $chapterIndex = 0;
 
-    public function __construct(ChapterAnalyzer $analizer)
+    public function __construct(ChapterAnalyzer $analyzer)
     {
-        $this->analizer = $analizer;
+        $this->analyzer = $analyzer;
     }
 
     /**
@@ -48,7 +48,7 @@ class ChapterGenerator implements DebugMode
             $index = $key + 1;
             $this->info($index, $silence);
 
-            if ($this->analizer->isTransition($silence)) {
+            if ($this->analyzer->isTransition($silence)) {
                 $this->transition($index, $silence);
                 $this->finishChapter($silence);
             } else {
