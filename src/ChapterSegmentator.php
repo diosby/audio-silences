@@ -2,12 +2,12 @@
 
 namespace SegmentGenerator;
 
-use SegmentGenerator\Contracts\DebugMode;
+use SegmentGenerator\Contracts\ChapterSegmentator as SegmentatorInterface;
 
 /**
  * Segments chapters.
  */
-class ChapterSegmentator implements DebugMode
+class ChapterSegmentator implements SegmentatorInterface
 {
     use DebugLog;
 
