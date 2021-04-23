@@ -87,24 +87,26 @@ class ChapterSegmentator implements SegmentatorInterface
     {
         return $chapter->count() === 1
             || (isset($this->maxSegment) && $this->maxSegment > $chapter->getDuration())
-            || (isset($this->minSilence) && !$this->doesChapterHaveLongSilence($chapter))
+            || (isset($this->minSilence) && !$this->doesChapterHaveSeparableParts($chapter))
         ;
     }
 
     /**
-     * Checks whether the given chapter has any long silences.
+     * Checks whether the given chapter has any separable parts.
+     * The separable part is a part where a silence duration greater than the
+     * min silence.
      *
      * @param Chapter $chapter
      * @return bool
      */
-    protected function doesChapterHaveLongSilence(Chapter $chapter): bool
+    protected function doesChapterHaveSeparableParts(Chapter $chapter): bool
     {
         $silences = $chapter->getInnerSilences();
         $greatSilences = array_filter($silences, function (Silence $silence) {
             return $silence->getDuration() >= $this->minSilence;
         });
 
-        return count($greatSilences);
+        return count($greatSilences) > 0;
     }
 
     /**
@@ -131,7 +133,7 @@ class ChapterSegmentator implements SegmentatorInterface
     {
         $this->log("%d. A multiple chapter.\n", $index);
         $numberOfPart = 0;
-        $duration = 0;
+        $segmentDuration = 0;
 
         foreach ($chapter->getParts() as $key => $part) {
             $this->log("%d.%d. A part of segments: %dms.\n", $index, $key + 1, $part->getDuration());
@@ -140,24 +142,24 @@ class ChapterSegmentator implements SegmentatorInterface
                 // It is a big segment.
                 $this->log("[L] The part is long.\n");
                 $this->partialSegment($part, ++$numberOfPart);
-                $duration = 0;
-            } elseif ($duration === 0) {
+                $segmentDuration = 0;
+            } elseif ($segmentDuration === 0) {
                 // It is a start segment of the multiple segments.
                 $this->log("[F] A new start part of multiple segments.\n");
                 $this->partialSegment($part, ++$numberOfPart);
-                $duration += $part->getDuration();
-            } elseif ($this->maxSegment <= $duration + $part->getDuration() && $this->isPartBreakable($part)) {
-                // The part overloads the duration.
-                $this->log("[O] The duration is oversize: %d.\n", $duration + $part->getDuration());
+                $segmentDuration += $part->getDuration();
+            } elseif ($this->maxSegment <= $segmentDuration + $part->getDuration() && $this->isPartSeparable($part)) {
+                // The sugment duration is overload by the duration of the chapter part.
+                $this->log("[O] The duration is oversize: %d.\n", $segmentDuration + $part->getDuration());
                 $this->partialSegment($part, ++$numberOfPart);
-                $duration = 0;
+                $segmentDuration = 0;
             } elseif ($part->getDuration() === 0) {
                 // The last empty segment that has an empty duration.
                 $this->log("[E] The last part of the chapter. It is empty.\n");
                 $this->partialSegment($part, ++$numberOfPart);
             } else {
                 $this->log("[N] To the next segment. Add the duration.\n");
-                $duration += $part->getDuration();
+                $segmentDuration += $part->getDuration();
             }
         }
     }
@@ -177,12 +179,14 @@ class ChapterSegmentator implements SegmentatorInterface
     }
 
     /**
-     * Checks whether the given part is breakable.
+     * Checks whether the given part is separable.
+     * The separable part is a part that has a duration greater or equal to
+     * to the min silence.
      *
      * @param ChapterPart $part
      * @return bool
      */
-    protected function isPartBreakable(ChapterPart $part): bool
+    protected function isPartSeparable(ChapterPart $part): bool
     {
         return !empty($this->minSilence)
             && (!$part->isLast() && $part->getSilenceAfter()->getDuration() >= $this->minSilence)
