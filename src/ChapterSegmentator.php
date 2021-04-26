@@ -147,10 +147,10 @@ class ChapterSegmentator implements SegmentatorInterface
                 // It is a start segment of the multiple segments.
                 $this->log("[F] A new segment of multiple segments.\n");
                 $this->partialSegment($part, ++$numberOfPart);
-                $segmentDuration += $part->getDuration();
-            } elseif ($this->maxSegment <= $segmentDuration + $part->getDuration() && $this->isPartSeparable($part)) {
-                // The sugment duration is overload by the duration of the chapter part.
-                $this->log("[O] The duration is oversize: %d.\n", $segmentDuration + $part->getDuration());
+                $segmentDuration += $part->getDurationWithLeftSilence();
+            } elseif ($this->isOverload($segmentDuration, $part) && $this->isPartSeparable($part)) {
+                // The segment duration is overloaded by the duration of the chapter part and its left silence.
+                $this->log("[O] The duration of the part with its left silence is overloaded: %d.\n", $segmentDuration + $part->getDurationWithLeftSilence());
                 $this->partialSegment($part, ++$numberOfPart);
                 $segmentDuration = 0;
             } elseif ($part->getDuration() === 0) {
@@ -159,8 +159,10 @@ class ChapterSegmentator implements SegmentatorInterface
                 $this->partialSegment($part, ++$numberOfPart);
             } else {
                 $this->log("[N] To the next segment. Add the duration.\n");
-                $segmentDuration += $part->getDuration();
+                $segmentDuration += $part->getDurationWithLeftSilence();
             }
+
+            $this->log("The duration of the part with its left silence is %s.\n", $part->getDurationWithLeftSilence());
         }
     }
 
@@ -176,6 +178,18 @@ class ChapterSegmentator implements SegmentatorInterface
         $this->segments[] = $lastSegment = new Segment($part->getOffset(), $part->getParent()->getTitle());
         $title = $lastSegment->getTitle() ? $lastSegment->getTitle() . ", part $index" : "Part $index";
         $lastSegment->setTitle($title);
+    }
+
+    /**
+     * Checks whether the part overloads the given segment duration.
+     *
+     * @param int $segmentDuration
+     * @param ChapterPart $part
+     * @return bool
+     */
+    protected function isOverload(int $segmentDuration, ChapterPart $part): bool
+    {
+        return $this->maxSegment <= $segmentDuration + $part->getDurationWithLeftSilence();
     }
 
     /**
