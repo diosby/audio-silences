@@ -189,8 +189,8 @@ class ChapterSegmentator implements SegmentatorInterface
     protected function isPartSeparable(ChapterPart $part): bool
     {
         return !empty($this->minSilence)
-            && (!$part->isLast() && $part->getSilenceAfter()->getDuration() >= $this->minSilence)
-            && (!$part->isFirst() && $part->getSilenceBefore()->getDuration() >= $this->minSilence)
+            && ($part->getSilenceAfter() && $part->getSilenceAfter()->getDuration() >= $this->minSilence)
+            && ($part->getSilenceBefore() && $part->getSilenceBefore()->getDuration() >= $this->minSilence)
         ;
     }
 }
