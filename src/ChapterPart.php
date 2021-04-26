@@ -168,4 +168,22 @@ class ChapterPart implements Duration
     {
         return $this->duration;
     }
+
+    /**
+     * Returns a duration of the part with a duration of the silence before
+     * the part of the chapter.
+     *
+     * @return int
+     */
+    public function getDurationWithLeftSilence(): int
+    {
+        if (!$this->isFirst()) {
+            $silence = $this->getSilenceBefore();
+            $silenceDuration = $silence->getDuration();
+        } else {
+            $silenceDuration = 0;
+        }
+
+        return $this->getDuration() + $silenceDuration;
+    }
 }
