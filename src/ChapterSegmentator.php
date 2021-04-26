@@ -86,7 +86,7 @@ class ChapterSegmentator implements SegmentatorInterface
     public function isUnbreakable(Chapter $chapter): bool
     {
         return $chapter->count() === 1
-            || (isset($this->maxSegment) && $this->maxSegment > $chapter->getDuration())
+            || (isset($this->maxSegment) && $this->maxSegment >= $chapter->getDuration())
             || (isset($this->minSilence) && !$this->doesChapterHaveSeparableParts($chapter))
         ;
     }
