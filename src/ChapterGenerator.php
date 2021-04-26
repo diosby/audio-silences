@@ -150,6 +150,6 @@ class ChapterGenerator implements DebugMode
      */
     protected function pause(int $index, Silence $silence): void
     {
-        $this->log("Silence %d is the transition: %d.\n", $index, $silence->getDuration());
+        $this->log("Silence %d is the pause: %d.\n", $index, $silence->getDuration());
     }
 }
