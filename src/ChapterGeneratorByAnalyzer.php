@@ -3,12 +3,12 @@
 namespace SegmentGenerator;
 
 use SegmentGenerator\Contracts\ChapterAnalyzer;
-use SegmentGenerator\Contracts\DebugMode;
+use SegmentGenerator\Contracts\ChapterGenerator as GeneratorInterface;
 
 /**
  * Makes chapters by silences.
  */
-class ChapterGenerator implements DebugMode
+class ChapterGeneratorByAnalyzer implements GeneratorInterface
 {
     use DebugLog;
 

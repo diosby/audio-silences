@@ -3,10 +3,11 @@
 require __DIR__ . '/vendor/autoload.php';
 
 use SegmentGenerator\ChapterAnalyzer;
-use SegmentGenerator\ChapterGenerator;
+use SegmentGenerator\ChapterGeneratorByAnalyzer;
 use SegmentGenerator\ChapterSegmentator;
 use SegmentGenerator\Interval;
 use SegmentGenerator\Silence;
+use SegmentGenerator\SilenceSegmentatorByChapters;
 
 // Expected arguments of CLI.
 $shortopts = '';
@@ -68,22 +69,11 @@ foreach ($xml as $item) {
 }
 
 $analizer = new ChapterAnalyzer($transition);
-$generator = new ChapterGenerator($analizer);
-$generator->debugMode($debug);
-$chapters = $generator->fromSilences($silences);
-
-// Generates template titles.
-$chapters->fillTitles();
-
-$segmentator = new ChapterSegmentator($maxDuration, $minSilence);
-$segmentator->debugMode($debug);
-$segments = $segmentator->segment($chapters);
-
-printf("The file: %s.\n", $path);
-printf("The transition: %dms.\n", $transition);
-printf("A number of the chapters: %d.\n", $chapters->getNumberOfChapters());
-printf("A number of the parts of the chapters: %d.\n", $chapters->getNumberOfParts());
-printf("A duration of the chapters without silences between chapters: %dms.\n", $chapters->getDuration());
+$chapterGenerator = new ChapterGeneratorByAnalyzer($analizer);
+$chapterSegmentator = new ChapterSegmentator($maxDuration, $minSilence);
+$silenceSegmentator = new SilenceSegmentatorByChapters($chapterGenerator, $chapterSegmentator);
+$silenceSegmentator->debugMode($debug);
+$segments = $silenceSegmentator->segment($silences);
 
 $data = ['segments' => $segments->toArray()];
 
