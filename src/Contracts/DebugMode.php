@@ -2,6 +2,9 @@
 
 namespace SegmentGenerator\Contracts;
 
+/**
+ * It uses to manage a state of the debuggin.
+ */
 interface DebugMode
 {
     /**
