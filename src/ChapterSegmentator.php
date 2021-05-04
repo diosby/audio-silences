@@ -12,14 +12,15 @@ class ChapterSegmentator implements SegmentatorInterface
     use DebugLog;
 
     /**
-     * A recommended max duration of a segment.
+     * A recommended maximal duration of a segment.
      *
      * @var int|null
      */
     protected $maxSegment;
 
     /**
-     * A min duration of a silence between segments.
+     * A minimal duration of a silence between parts (segments) in a chapter
+     * which can be used to split a long chapter.
      *
      * @var int|null
      */
@@ -195,7 +196,7 @@ class ChapterSegmentator implements SegmentatorInterface
     /**
      * Checks whether the given part is separable.
      * The separable part is a part that has a duration greater or equal to
-     * to the min silence.
+     * the min silence.
      *
      * @param ChapterPart $part
      * @return bool
