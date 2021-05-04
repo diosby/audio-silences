@@ -139,7 +139,7 @@ class ChapterSegmentator implements SegmentatorInterface
         foreach ($chapter->getParts() as $key => $part) {
             $this->log("%d.%d. A part of chapters: %dms.\n", $index, $key + 1, $part->getDuration());
 
-            if ($this->maxSegment <= $part->getDuration()) {
+            if ($this->maxSegment <= $part->getDuration() && $this->isPartSeparable($part)) {
                 // It is a big segment.
                 $this->log("[L] The part is greater than the max segment.\n");
                 $this->partialSegment($part, ++$numberOfPart);
