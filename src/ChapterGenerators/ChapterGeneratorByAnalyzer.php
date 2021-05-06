@@ -14,11 +14,28 @@ use SegmentGenerator\Entities\Silence;
 class ChapterGeneratorByAnalyzer implements ChapterGenerator
 {
     /**
+     * The state of a handling silence. The silence is a transition.
+     */
+    public const TRANSITION = 1;
+
+    /**
+     * The state of a handling silence. The silence isn't a transition.
+     */
+    public const NOT_TRANSITION = 0;
+
+    /**
      * An analyzer.
      *
      * @var SilenceAnalyzer
      */
     protected $analyzer;
+
+    /**
+     * A chapter index of the current handling.
+     *
+     * @var int
+     */
+    protected $chapterIndex = 0;
 
     /**
      * Chapters of the last generation.
@@ -40,52 +57,38 @@ class ChapterGeneratorByAnalyzer implements ChapterGenerator
      */
     public function fromSilences(iterable $silences): ChapterCollection
     {
-        $this->chapters = [];
-
-        foreach ($silences as $key => $silence) {
-            if ($this->analyzer->isTransition($silence)) {
-                $this->finishChapter($silence);
-            } else {
-                $this->next($silence);
-            }
-        }
+        $this->reset();
+        array_walk($silences, [$this, 'handleSilence']);
 
         return new ChapterCollection($this->chapters);
     }
 
     /**
-     * Adds a start offset to the last chapter and a finish offset to a new
-     * chapter.
+     * Handles the given silence.
+     * Returns 1 if the silence is a transition. In other cases returns 0.
      *
      * @param Silence $silence
-     * @return void
+     * @return int
      */
-    protected function finishChapter(Silence $silence): void
+    public function handleSilence(Silence $silence): int
     {
-        // Adds the finish time to the last chapter.
-        $this->getChapter()->finishBySilence($silence);
-        $this->nextChapter();
-        // Adds the start time to the new chapter.
-        $this->getChapter()->startBySilence($silence);
+        if ($this->analyzer->isTransition($silence)) {
+            $this->finishChapter($silence);
+
+            return self::TRANSITION;
+        }
+
+        $this->nextPart($silence);
+
+        return self::NOT_TRANSITION;
     }
 
     /**
-     * Adds a finish time to the last segment and a start time to a new segment.
-     *
-     * @param Silence $silence
-     * @return void
-     */
-    protected function next(Silence $silence): void
-    {
-        $this->getChapter()->plusBySilence($silence);
-    }
-
-    /**
-     * Returns an existent chapter or creates a new.
+     * Returns an existent last chapter or creates a new and returns it.
      *
      * @return Chapter
      */
-    protected function getChapter(): Chapter
+    public function getChapter(): Chapter
     {
         if (!isset($this->chapters[$this->chapterIndex])) {
             $this->chapters[$this->chapterIndex] = new Chapter;
@@ -95,12 +98,51 @@ class ChapterGeneratorByAnalyzer implements ChapterGenerator
     }
 
     /**
-     * Moves the pointer to the next chapter.
+     * Adds a start offset to the last chapter and a finish offset to a new
+     * chapter.
+     *
+     * @param Silence $silence
+     * @return void
+     */
+    public function finishChapter(Silence $silence): void
+    {
+        // Adds the finish time to the last chapter.
+        $this->getChapter()->finishBySilence($silence);
+        // Adds the start time to the new chapter.
+        $this->nextChapter()->startBySilence($silence);
+    }
+
+    /**
+     * Adds a finish time to the last segment and a start time to a new segment.
+     *
+     * @param Silence $silence
+     * @return void
+     */
+    public function nextPart(Silence $silence): void
+    {
+        $this->getChapter()->plusBySilence($silence);
+    }
+
+    /**
+     * Moves to the next chapter and returns the new chapter.
+     *
+     * @return Chapter
+     */
+    public function nextChapter(): Chapter
+    {
+        $this->chapterIndex++;
+
+        return $this->getChapter();
+    }
+
+    /**
+     * Resets the pointer and chapters.
      *
      * @return void
      */
-    protected function nextChapter(): void
+    protected function reset(): void
     {
-        $this->chapterIndex++;
+        $this->chapters = [];
+        $this->chapterIndex = 0;
     }
 }
