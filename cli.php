@@ -4,7 +4,7 @@ require __DIR__ . '/vendor/autoload.php';
 
 use SegmentGenerator\ChapterAnalyzers\ChapterAnalyzer;
 use SegmentGenerator\ChapterGenerators\ChapterGeneratorByAnalyzer;
-use SegmentGenerator\ChapterSegmenrators\ChapterSegmentator;
+use SegmentGenerator\ChapterSegmentators\ChapterSegmentator;
 use SegmentGenerator\Entities\Interval;
 use SegmentGenerator\Entities\Silence;
 use SegmentGenerator\Loggers\NullLogger;
