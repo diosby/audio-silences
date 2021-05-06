@@ -1,6 +1,6 @@
 <?php
 
-namespace SegmentGenerator;
+namespace SegmentGenerator\ChapterAnalyzers;
 
 use SegmentGenerator\Contracts\ChapterAnalyzer as ChapterAnalyzerInterface;
 use SegmentGenerator\Contracts\Duration;

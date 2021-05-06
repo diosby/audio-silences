@@ -1,6 +1,6 @@
 <?php
 
-namespace SegmentGenerator;
+namespace SegmentGenerator\ChapterGenerators;
 
 use SegmentGenerator\Contracts\ChapterAnalyzer;
 use SegmentGenerator\Contracts\ChapterGenerator as GeneratorInterface;

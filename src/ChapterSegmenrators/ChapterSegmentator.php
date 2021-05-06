@@ -1,6 +1,6 @@
 <?php
 
-namespace SegmentGenerator;
+namespace SegmentGenerator\ChapterSegmenrators;
 
 use SegmentGenerator\Contracts\ChapterSegmentator as SegmentatorInterface;
 use SegmentGenerator\Contracts\Logger;

@@ -1,6 +1,6 @@
 <?php
 
-namespace SegmentGenerator;
+namespace SegmentGenerator\SilenceSegmentators;
 
 use SegmentGenerator\Contracts\ChapterGenerator;
 use SegmentGenerator\Contracts\ChapterSegmentator;
