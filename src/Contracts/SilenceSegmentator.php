@@ -8,7 +8,7 @@ use SegmentGenerator\Silence;
 /**
  * Segments silences.
  */
-interface SilenceSegmentator extends DebugMode
+interface SilenceSegmentator
 {
     /**
      * Segments the given silences.

@@ -3,12 +3,11 @@
 namespace SegmentGenerator\Contracts;
 
 use SegmentGenerator\ChapterCollection;
-use SegmentGenerator\Contracts\DebugMode;
 
 /**
  * Makes chapters by silences.
  */
-interface ChapterGenerator extends DebugMode
+interface ChapterGenerator
 {
     /**
      * Generates a chapter collection from the given silences.

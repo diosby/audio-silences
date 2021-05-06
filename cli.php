@@ -6,6 +6,8 @@ use SegmentGenerator\ChapterAnalyzer;
 use SegmentGenerator\ChapterGeneratorByAnalyzer;
 use SegmentGenerator\ChapterSegmentator;
 use SegmentGenerator\Interval;
+use SegmentGenerator\Loggers\NullLogger;
+use SegmentGenerator\Loggers\ScreenLogger;
 use SegmentGenerator\Silence;
 use SegmentGenerator\SilenceSegmentatorByChapters;
 
@@ -77,12 +79,11 @@ $silences = [];
 foreach ($xml as $item) {
     $silences[] = new Silence(new Interval($item['from']), new Interval($item['until']));
 }
-
+$logger = $debug ? new ScreenLogger : new NullLogger;
 $analyzer = new ChapterAnalyzer($transition);
-$chapterGenerator = new ChapterGeneratorByAnalyzer($analyzer);
-$chapterSegmentator = new ChapterSegmentator($maxDuration, $minSilence);
-$silenceSegmentator = new SilenceSegmentatorByChapters($chapterGenerator, $chapterSegmentator);
-$silenceSegmentator->debugMode($debug);
+$chapterGenerator = new ChapterGeneratorByAnalyzer($logger, $analyzer);
+$chapterSegmentator = new ChapterSegmentator($logger, $maxDuration, $minSilence);
+$silenceSegmentator = new SilenceSegmentatorByChapters($logger, $chapterGenerator, $chapterSegmentator);
 $segments = $silenceSegmentator->segment($silences);
 
 $data = ['segments' => $segments->toArray()];

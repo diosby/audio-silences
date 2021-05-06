@@ -4,14 +4,25 @@ namespace SegmentGenerator;
 
 use SegmentGenerator\Contracts\ChapterAnalyzer;
 use SegmentGenerator\Contracts\ChapterGenerator as GeneratorInterface;
+use SegmentGenerator\Contracts\Logger;
 
 /**
  * Makes chapters by silences.
  */
 class ChapterGeneratorByAnalyzer implements GeneratorInterface
 {
-    use DebugLog;
+    /**
+     * A logger.
+     *
+     * @var Logger
+     */
+    protected $logger;
 
+    /**
+     * An analyzer.
+     *
+     * @var ChapterAnalyzer
+     */
     protected $analyzer;
 
     /**
@@ -28,8 +39,9 @@ class ChapterGeneratorByAnalyzer implements GeneratorInterface
      */
     private $chapterIndex = 0;
 
-    public function __construct(ChapterAnalyzer $analyzer)
+    public function __construct(Logger $logger, ChapterAnalyzer $analyzer)
     {
+        $this->logger = $logger;
         $this->analyzer = $analyzer;
     }
 
@@ -120,7 +132,7 @@ class ChapterGeneratorByAnalyzer implements GeneratorInterface
      */
     protected function info(int $index, Silence $silence): void
     {
-        $this->log(
+        $this->logger->log(
             "Silence %d, ms: %d, from %s until %s.\n",
             $index,
             $silence->getDuration(),
@@ -138,7 +150,7 @@ class ChapterGeneratorByAnalyzer implements GeneratorInterface
      */
     protected function transition(int $index, Silence $silence): void
     {
-        $this->log("Silence %d is the transition: %d.\n", $index, $silence->getDuration());
+        $this->logger->log("Silence %d is the transition: %d.\n", $index, $silence->getDuration());
     }
 
     /**
@@ -150,6 +162,6 @@ class ChapterGeneratorByAnalyzer implements GeneratorInterface
      */
     protected function pause(int $index, Silence $silence): void
     {
-        $this->log("Silence %d is the pause: %d.\n", $index, $silence->getDuration());
+        $this->logger->log("Silence %d is the pause: %d.\n", $index, $silence->getDuration());
     }
 }

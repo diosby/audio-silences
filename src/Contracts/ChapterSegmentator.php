@@ -8,7 +8,7 @@ use SegmentGenerator\SegmentCollection;
 /**
  * The interface to segment chapters with parts.
  */
-interface ChapterSegmentator extends DebugMode
+interface ChapterSegmentator
 {
     /**
      * Segments the given chapters.

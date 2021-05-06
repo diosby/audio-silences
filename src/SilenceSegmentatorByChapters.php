@@ -4,6 +4,7 @@ namespace SegmentGenerator;
 
 use SegmentGenerator\Contracts\ChapterGenerator;
 use SegmentGenerator\Contracts\ChapterSegmentator;
+use SegmentGenerator\Contracts\Logger;
 use SegmentGenerator\Contracts\SilenceSegmentator;
 use SegmentGenerator\SegmentCollection;
 use SegmentGenerator\Silence;
@@ -13,9 +14,12 @@ use SegmentGenerator\Silence;
  */
 class SilenceSegmentatorByChapters implements SilenceSegmentator
 {
-    use DebugLog {
-        debugMode as setDebugMode;
-    }
+    /**
+     * A logger.
+     *
+     * @var Logger
+     */
+    protected $logger;
 
     /**
      * An instance of ChapterGenerator.
@@ -38,8 +42,9 @@ class SilenceSegmentatorByChapters implements SilenceSegmentator
      */
     private $chapters;
 
-    public function __construct(ChapterGenerator $generator, ChapterSegmentator $segmentator)
+    public function __construct(Logger $logger, ChapterGenerator $generator, ChapterSegmentator $segmentator)
     {
+        $this->logger = $logger;
         $this->generator = $generator;
         $this->segmentator = $segmentator;
     }
@@ -62,19 +67,6 @@ class SilenceSegmentatorByChapters implements SilenceSegmentator
     public function getChapterSegmentator(): ChapterSegmentator
     {
         return $this->segmentator;
-    }
-
-    /**
-     * Sets a state of the debugging.
-     *
-     * @param bool $state
-     * @return void
-     */
-    public function debugMode(bool $state = true): void
-    {
-        $this->setDebugMode($state);
-        $this->generator->debugMode($state);
-        $this->segmentator->debugMode($state);
     }
 
     /**
@@ -112,8 +104,8 @@ class SilenceSegmentatorByChapters implements SilenceSegmentator
      */
     public function info(): void
     {
-        $this->log("A number of the chapters: %d.\n", $this->chapters->getNumberOfChapters());
-        $this->log("A number of the parts of the chapters: %d.\n", $this->chapters->getNumberOfParts());
-        $this->log("A duration of the chapters without silences between chapters: %dms.\n", $this->chapters->getDuration());
+        $this->logger->log("A number of the chapters: %d.\n", $this->chapters->getNumberOfChapters());
+        $this->logger->log("A number of the parts of the chapters: %d.\n", $this->chapters->getNumberOfParts());
+        $this->logger->log("A duration of the chapters without silences between chapters: %dms.\n", $this->chapters->getDuration());
     }
 }
