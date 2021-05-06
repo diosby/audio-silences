@@ -81,9 +81,9 @@ foreach ($xml as $item) {
 }
 $logger = $debug ? new ScreenLogger : new NullLogger;
 $analyzer = new ChapterAnalyzer($transition);
-$chapterGenerator = new ChapterGeneratorByAnalyzer($logger, $analyzer);
-$chapterSegmentator = new ChapterSegmentator($logger, $maxDuration, $minSilence);
-$silenceSegmentator = new SilenceSegmentatorByChapters($logger, $chapterGenerator, $chapterSegmentator);
+$chapterGenerator = new ChapterGeneratorByAnalyzer($analyzer);
+$chapterSegmentator = new ChapterSegmentator($maxDuration, $minSilence);
+$silenceSegmentator = new SilenceSegmentatorByChapters($chapterGenerator, $chapterSegmentator);
 $segments = $silenceSegmentator->segment($silences);
 
 $data = ['segments' => $segments->toArray()];

@@ -4,7 +4,6 @@ namespace SegmentGenerator\ChapterGenerators;
 
 use SegmentGenerator\Contracts\ChapterAnalyzer;
 use SegmentGenerator\Contracts\ChapterGenerator as GeneratorInterface;
-use SegmentGenerator\Contracts\Logger;
 use SegmentGenerator\Entities\Chapter;
 use SegmentGenerator\Entities\ChapterCollection;
 use SegmentGenerator\Entities\Silence;
@@ -14,13 +13,6 @@ use SegmentGenerator\Entities\Silence;
  */
 class ChapterGeneratorByAnalyzer implements GeneratorInterface
 {
-    /**
-     * A logger.
-     *
-     * @var Logger
-     */
-    protected $logger;
-
     /**
      * An analyzer.
      *
@@ -35,16 +27,8 @@ class ChapterGeneratorByAnalyzer implements GeneratorInterface
      */
     private $chapters = [];
 
-    /**
-     * An index of the last generation.
-     *
-     * @var int
-     */
-    private $chapterIndex = 0;
-
-    public function __construct(Logger $logger, ChapterAnalyzer $analyzer)
+    public function __construct(ChapterAnalyzer $analyzer)
     {
-        $this->logger = $logger;
         $this->analyzer = $analyzer;
     }
 
@@ -57,17 +41,11 @@ class ChapterGeneratorByAnalyzer implements GeneratorInterface
     public function fromSilences(iterable $silences): ChapterCollection
     {
         $this->chapters = [];
-        $this->chapterIndex = 0;
 
         foreach ($silences as $key => $silence) {
-            $index = $key + 1;
-            $this->info($index, $silence);
-
             if ($this->analyzer->isTransition($silence)) {
-                $this->transition($index, $silence);
                 $this->finishChapter($silence);
             } else {
-                $this->pause($index, $silence);
                 $this->next($silence);
             }
         }
@@ -124,47 +102,5 @@ class ChapterGeneratorByAnalyzer implements GeneratorInterface
     protected function nextChapter(): void
     {
         $this->chapterIndex++;
-    }
-
-    /**
-     * Shows info about the given silence.
-     *
-     * @param int $index
-     * @param Silence $silence
-     * @return void
-     */
-    protected function info(int $index, Silence $silence): void
-    {
-        $this->logger->log(
-            "Silence %d, ms: %d, from %s until %s.\n",
-            $index,
-            $silence->getDuration(),
-            (string) $silence->getFrom(),
-            (string) $silence->getUntil()
-        );
-    }
-
-    /**
-     * Shows info about a transition of the silence.
-     *
-     * @param int $index
-     * @param Silence $silence
-     * @return void
-     */
-    protected function transition(int $index, Silence $silence): void
-    {
-        $this->logger->log("Silence %d is the transition: %d.\n", $index, $silence->getDuration());
-    }
-
-    /**
-     * Shows info about a pause of the silence.
-     *
-     * @param int $index
-     * @param Silence $silence
-     * @return void
-     */
-    protected function pause(int $index, Silence $silence): void
-    {
-        $this->logger->log("Silence %d is the pause: %d.\n", $index, $silence->getDuration());
     }
 }

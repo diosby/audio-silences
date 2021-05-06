@@ -3,7 +3,6 @@
 namespace SegmentGenerator\ChapterSegmenrators;
 
 use SegmentGenerator\Contracts\ChapterSegmentator as SegmentatorInterface;
-use SegmentGenerator\Contracts\Logger;
 use SegmentGenerator\Entities\Chapter;
 use SegmentGenerator\Entities\ChapterCollection;
 use SegmentGenerator\Entities\ChapterPart;
@@ -16,13 +15,6 @@ use SegmentGenerator\Entities\Silence;
  */
 class ChapterSegmentator implements SegmentatorInterface
 {
-    /**
-     * A logger.
-     *
-     * @var Logger
-     */
-    protected $logger;
-
     /**
      * A recommended maximal duration of a segment.
      *
@@ -40,9 +32,8 @@ class ChapterSegmentator implements SegmentatorInterface
 
     private $segments = [];
 
-    public function __construct(Logger $logger, int $maxSegment = null, int $minSilence = null)
+    public function __construct(int $maxSegment = null, int $minSilence = null)
     {
-        $this->logger = $logger;
         $this->maxSegment = $maxSegment;
         $this->minSilence = $minSilence;
     }
@@ -132,7 +123,6 @@ class ChapterSegmentator implements SegmentatorInterface
      */
     protected function fullChapter(Chapter $chapter, int $index): void
     {
-        $this->logger->log("%d. A full chapter.\n", $index);
         $this->segments[] = new Segment($chapter->getOffset(), $chapter->getTitle());
     }
 
@@ -145,38 +135,28 @@ class ChapterSegmentator implements SegmentatorInterface
      */
     protected function multipleChapter(Chapter $chapter, int $index): void
     {
-        $this->logger->log("%d. A multiple chapter.\n", $index);
         $numberOfPart = 0;
         $segmentDuration = 0;
 
         foreach ($chapter->getParts() as $key => $part) {
-            $this->logger->log("%d.%d. A part of chapters: %dms.\n", $index, $key + 1, $part->getDuration());
-
             if ($this->maxSegment <= $part->getDuration() && $this->isPartSeparable($part)) {
                 // It is a big segment.
-                $this->logger->log("[L] The part is greater than the max segment.\n");
                 $this->partialSegment($part, ++$numberOfPart);
                 $segmentDuration = 0;
             } elseif ($segmentDuration === 0) {
                 // It is a start segment of the multiple segments.
-                $this->logger->log("[F] A new segment of multiple segments.\n");
                 $this->partialSegment($part, ++$numberOfPart);
                 $segmentDuration += $part->getDurationWithLeftSilence();
             } elseif ($this->isOverload($segmentDuration, $part) && $this->isPartSeparable($part)) {
                 // The segment duration is overloaded by the duration of the chapter part and its left silence.
-                $this->logger->log("[O] The duration of the part with its left silence is overloaded: %d.\n", $segmentDuration + $part->getDurationWithLeftSilence());
                 $this->partialSegment($part, ++$numberOfPart);
                 $segmentDuration = 0;
             } elseif ($part->getDuration() === 0) {
                 // The last empty segment that has an empty duration.
-                $this->logger->log("[E] The last part of the chapter. It is empty.\n");
                 $this->partialSegment($part, ++$numberOfPart);
             } else {
-                $this->logger->log("[N] To the next segment. Add the duration.\n");
                 $segmentDuration += $part->getDurationWithLeftSilence();
             }
-
-            $this->logger->log("The duration of the part with its left silence is %s.\n", $part->getDurationWithLeftSilence());
         }
     }
 
