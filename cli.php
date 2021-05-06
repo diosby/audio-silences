@@ -5,10 +5,10 @@ require __DIR__ . '/vendor/autoload.php';
 use SegmentGenerator\ChapterAnalyzer;
 use SegmentGenerator\ChapterGeneratorByAnalyzer;
 use SegmentGenerator\ChapterSegmentator;
-use SegmentGenerator\Interval;
+use SegmentGenerator\Entities\Interval;
+use SegmentGenerator\Entities\Silence;
 use SegmentGenerator\Loggers\NullLogger;
 use SegmentGenerator\Loggers\ScreenLogger;
-use SegmentGenerator\Silence;
 use SegmentGenerator\SilenceSegmentatorByChapters;
 
 /**

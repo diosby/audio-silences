@@ -5,6 +5,9 @@ namespace SegmentGenerator;
 use SegmentGenerator\Contracts\ChapterAnalyzer;
 use SegmentGenerator\Contracts\ChapterGenerator as GeneratorInterface;
 use SegmentGenerator\Contracts\Logger;
+use SegmentGenerator\Entities\Chapter;
+use SegmentGenerator\Entities\ChapterCollection;
+use SegmentGenerator\Entities\Silence;
 
 /**
  * Makes chapters by silences.

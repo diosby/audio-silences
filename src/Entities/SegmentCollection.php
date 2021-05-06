@@ -1,6 +1,6 @@
 <?php
 
-namespace SegmentGenerator;
+namespace SegmentGenerator\Entities;
 
 class SegmentCollection implements \Countable
 {

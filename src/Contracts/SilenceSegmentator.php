@@ -2,8 +2,8 @@
 
 namespace SegmentGenerator\Contracts;
 
-use SegmentGenerator\SegmentCollection;
-use SegmentGenerator\Silence;
+use SegmentGenerator\Entities\SegmentCollection;
+use SegmentGenerator\Entities\Silence;
 
 /**
  * Segments silences.

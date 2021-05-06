@@ -2,6 +2,8 @@
 
 namespace SegmentGenerator;
 
+use SegmentGenerator\Entities\Interval;
+
 class Segment
 {
     /**

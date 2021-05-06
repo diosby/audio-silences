@@ -2,8 +2,8 @@
 
 namespace SegmentGenerator\Contracts;
 
-use SegmentGenerator\ChapterCollection;
-use SegmentGenerator\SegmentCollection;
+use SegmentGenerator\Entities\ChapterCollection;
+use SegmentGenerator\Entities\SegmentCollection;
 
 /**
  * The interface to segment chapters with parts.

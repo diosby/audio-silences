@@ -4,6 +4,12 @@ namespace SegmentGenerator;
 
 use SegmentGenerator\Contracts\ChapterSegmentator as SegmentatorInterface;
 use SegmentGenerator\Contracts\Logger;
+use SegmentGenerator\Entities\Chapter;
+use SegmentGenerator\Entities\ChapterCollection;
+use SegmentGenerator\Entities\ChapterPart;
+use SegmentGenerator\Entities\Segment;
+use SegmentGenerator\Entities\SegmentCollection;
+use SegmentGenerator\Entities\Silence;
 
 /**
  * Segments chapters.

@@ -2,7 +2,8 @@
 
 namespace SegmentGenerator\Contracts;
 
-use SegmentGenerator\ChapterCollection;
+use SegmentGenerator\Entities\ChapterCollection;
+use SegmentGenerator\Entities\Silence;
 
 /**
  * Makes chapters by silences.

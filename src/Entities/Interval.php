@@ -1,6 +1,6 @@
 <?php
 
-namespace SegmentGenerator;
+namespace SegmentGenerator\Entities;
 
 use SegmentGenerator\Contracts\Duration;
 

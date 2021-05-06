@@ -6,8 +6,9 @@ use SegmentGenerator\Contracts\ChapterGenerator;
 use SegmentGenerator\Contracts\ChapterSegmentator;
 use SegmentGenerator\Contracts\Logger;
 use SegmentGenerator\Contracts\SilenceSegmentator;
-use SegmentGenerator\SegmentCollection;
-use SegmentGenerator\Silence;
+use SegmentGenerator\Entities\ChapterCollection;
+use SegmentGenerator\Entities\SegmentCollection;
+use SegmentGenerator\Entities\Silence;
 
 /**
  * Segments silences by generated chapters.
