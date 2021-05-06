@@ -2,8 +2,8 @@
 
 namespace SegmentGenerator\ChapterGenerators;
 
-use SegmentGenerator\Contracts\ChapterAnalyzer;
-use SegmentGenerator\Contracts\ChapterGenerator as GeneratorInterface;
+use SegmentGenerator\Contracts\ChapterGenerator;
+use SegmentGenerator\Contracts\SilenceAnalyzer;
 use SegmentGenerator\Entities\Chapter;
 use SegmentGenerator\Entities\ChapterCollection;
 use SegmentGenerator\Entities\Silence;
@@ -11,12 +11,12 @@ use SegmentGenerator\Entities\Silence;
 /**
  * Makes chapters by silences.
  */
-class ChapterGeneratorByAnalyzer implements GeneratorInterface
+class ChapterGeneratorByAnalyzer implements ChapterGenerator
 {
     /**
      * An analyzer.
      *
-     * @var ChapterAnalyzer
+     * @var SilenceAnalyzer
      */
     protected $analyzer;
 
@@ -27,7 +27,7 @@ class ChapterGeneratorByAnalyzer implements GeneratorInterface
      */
     private $chapters = [];
 
-    public function __construct(ChapterAnalyzer $analyzer)
+    public function __construct(SilenceAnalyzer $analyzer)
     {
         $this->analyzer = $analyzer;
     }
