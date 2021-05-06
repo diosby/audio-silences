@@ -2,13 +2,13 @@
 
 require __DIR__ . '/vendor/autoload.php';
 
-use SegmentGenerator\ChapterAnalyzers\ChapterAnalyzer;
 use SegmentGenerator\ChapterGenerators\ChapterGeneratorByAnalyzer;
 use SegmentGenerator\ChapterSegmentators\ChapterSegmentator;
 use SegmentGenerator\Entities\Interval;
 use SegmentGenerator\Entities\Silence;
 use SegmentGenerator\Loggers\NullLogger;
 use SegmentGenerator\Loggers\ScreenLogger;
+use SegmentGenerator\SilenceAnalyzers\SilenceAnalyzerByMinTransition;
 use SegmentGenerator\SilenceSegmentators\SilenceSegmentatorByChapters;
 
 /**
@@ -80,7 +80,7 @@ foreach ($xml as $item) {
     $silences[] = new Silence(new Interval($item['from']), new Interval($item['until']));
 }
 $logger = $debug ? new ScreenLogger : new NullLogger;
-$analyzer = new ChapterAnalyzer($transition);
+$analyzer = new SilenceAnalyzerByMinTransition($transition);
 $chapterGenerator = new ChapterGeneratorByAnalyzer($analyzer);
 $chapterSegmentator = new ChapterSegmentator($maxDuration, $minSilence);
 $silenceSegmentator = new SilenceSegmentatorByChapters($chapterGenerator, $chapterSegmentator);
