@@ -41,6 +41,7 @@ class ChapterGeneratorByAnalyzer implements GeneratorInterface
     public function fromSilences(iterable $silences): ChapterCollection
     {
         $this->chapters = [];
+        $this->chapterIndex = 0;
 
         foreach ($silences as $key => $silence) {
             if ($this->analyzer->isTransition($silence)) {
