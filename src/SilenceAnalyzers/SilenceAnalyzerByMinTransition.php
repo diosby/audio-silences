@@ -1,14 +1,15 @@
 <?php
 
-namespace SegmentGenerator\ChapterAnalyzers;
+namespace SegmentGenerator\SilenceAnalyzers;
 
-use SegmentGenerator\Contracts\ChapterAnalyzer as ChapterAnalyzerInterface;
+use SegmentGenerator\Contracts\SilenceAnalyzer;
 use SegmentGenerator\Contracts\Duration;
+use SegmentGenerator\Entities\Silence;
 
 /**
  * The algorithm compares durations only with the min duration of the transition.
  */
-class ChapterAnalyzer implements ChapterAnalyzerInterface
+class SilenceAnalyzerByMinTransition implements SilenceAnalyzer
 {
     protected $minTransition;
 
@@ -23,7 +24,7 @@ class ChapterAnalyzer implements ChapterAnalyzerInterface
      * @param Duration $duration
      * @return bool
      */
-    public function isTransition(Duration $duration): bool
+    public function isTransition(Silence $duration): bool
     {
         return $this->minTransition <= $duration->getDuration();
     }
