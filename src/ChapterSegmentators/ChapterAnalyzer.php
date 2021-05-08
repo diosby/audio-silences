@@ -118,15 +118,15 @@ class ChapterAnalyzer
      * @param ChapterPart $part
      * @return bool
      */
-    public function isOverload(int $segmentDuration, ChapterPart $part): bool
+    public function doesOverload(int $segmentDuration, ChapterPart $part): bool
     {
         return $this->maxSegment <= $segmentDuration + $part->getDurationWithLeftSilence();
     }
 
     /**
      * Checks whether the given part is separable.
-     * The separable part is a part that has a duration greater or equal to
-     * the min silence.
+     * The separable part is a part where its duration greater or equal to
+     * the minimal silence.
      *
      * @param ChapterPart $part
      * @return bool
@@ -137,5 +137,28 @@ class ChapterAnalyzer
             && ($part->getSilenceAfter() && $part->getSilenceAfter()->getDuration() >= $this->minSilence)
             && ($part->getSilenceBefore() && $part->getSilenceBefore()->getDuration() >= $this->minSilence)
         ;
+    }
+
+    /**
+     * Checks whether the part is long. The long part is the part where
+     * its guration greater then the maximal segment.
+     *
+     * @param ChapterPart $part
+     * @return bool
+     */
+    public function isLongPart(ChapterPart $part): bool
+    {
+        return $this->maxSegment <= $part->getDuration();
+    }
+
+    /**
+     * Checks whether the given part is a long separable part.
+     *
+     * @param ChapterPart $part
+     * @return bool
+     */
+    public function isLongSeparablePart(ChapterPart $part): bool
+    {
+        return $this->isLongPart($part) && $this->isPartSeparable($part);
     }
 }

@@ -79,6 +79,7 @@ $silences = [];
 foreach ($xml as $item) {
     $silences[] = new Silence(new Interval($item['from']), new Interval($item['until']));
 }
+
 $logger = $debug ? new ScreenLogger : new NullLogger;
 $analyzer = new SilenceAnalyzerByMinTransition($transition);
 $chapterGenerator = new ChapterGeneratorByAnalyzer($analyzer);

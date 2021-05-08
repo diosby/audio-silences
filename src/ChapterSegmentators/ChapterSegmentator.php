@@ -106,7 +106,7 @@ class ChapterSegmentator implements SegmentatorInterface
         $segmentDuration = 0;
 
         foreach ($chapter->getParts() as $key => $part) {
-            if ($this->maxSegment <= $part->getDuration() && $this->chapterAnalyzer->isPartSeparable($part)) {
+            if ($this->chapterAnalyzer->isLongSeparablePart($part)) {
                 // It is a big segment.
                 $this->addSegment($part, ++$numberOfPart);
                 $segmentDuration = 0;
