@@ -114,7 +114,7 @@ class ChapterSegmentator implements SegmentatorInterface
                 // It is a start segment of the multiple segments.
                 $this->addSegment($part, ++$numberOfPart);
                 $segmentDuration += $part->getDurationWithLeftSilence();
-            } elseif ($this->chapterAnalyzer->isOverload($segmentDuration, $part) && $this->chapterAnalyzer->isPartSeparable($part)) {
+            } elseif ($this->chapterAnalyzer->isSegmentOverloaded($segmentDuration, $part)) {
                 // The segment duration is overloaded by the duration of the chapter part and its left silence.
                 $this->addSegment($part, ++$numberOfPart);
                 $segmentDuration = 0;

@@ -161,4 +161,17 @@ class ChapterAnalyzer
     {
         return $this->isLongPart($part) && $this->isPartSeparable($part);
     }
+
+    /**
+     * Checks whether the given segment duration is overloaded by the given
+     * part and the part is separable.
+     *
+     * @param ChapterPart $part
+     * @param int $segmentDuration
+     * @return bool
+     */
+    public function isSegmentOverloaded(int $segmentDuration, ChapterPart $part): bool
+    {
+        return $this->doesOverload($segmentDuration, $part) && $this->isPartSeparable($part);
+    }
 }
