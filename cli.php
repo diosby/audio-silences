@@ -6,8 +6,11 @@ use SegmentGenerator\ChapterGenerators\ChapterGeneratorByAnalyzer;
 use SegmentGenerator\ChapterSegmentators\ChapterSegmentator;
 use SegmentGenerator\Entities\Interval;
 use SegmentGenerator\Entities\Silence;
-use SegmentGenerator\Loggers\NullLogger;
-use SegmentGenerator\Loggers\ScreenLogger;
+use SegmentGenerator\Outputters\Decorators\ArrayBase;
+use SegmentGenerator\Outputters\Decorators\ArrayWrapperDecorator;
+use SegmentGenerator\Outputters\Decorators\JsonDecorator;
+use SegmentGenerator\Outputters\FileOutputter;
+use SegmentGenerator\Outputters\StdOutputter;
 use SegmentGenerator\SilenceAnalyzers\SilenceAnalyzerByMinTransition;
 use SegmentGenerator\SilenceSegmentators\SilenceSegmentatorByChapters;
 
@@ -80,17 +83,18 @@ foreach ($xml as $item) {
     $silences[] = new Silence(new Interval($item['from']), new Interval($item['until']));
 }
 
-$logger = $debug ? new ScreenLogger : new NullLogger;
 $analyzer = new SilenceAnalyzerByMinTransition($transition);
 $chapterGenerator = new ChapterGeneratorByAnalyzer($analyzer);
 $chapterSegmentator = new ChapterSegmentator($maxDuration, $minSilence);
 $silenceSegmentator = new SilenceSegmentatorByChapters($chapterGenerator, $chapterSegmentator);
 $segments = $silenceSegmentator->segment($silences);
 
-$data = ['segments' => $segments->toArray()];
+$decorators = new JsonDecorator(new ArrayWrapperDecorator(new ArrayBase()));
 
 if (isset($output)) {
-    file_put_contents($output, json_encode($data, JSON_PRETTY_PRINT));
+    $outputter = new FileOutputter($output, $decorators);
 } else {
-    print(json_encode($data, JSON_PRETTY_PRINT)."\n");
+    $outputter = new StdOutputter($decorators);
 }
+
+$outputter->output($segments);
