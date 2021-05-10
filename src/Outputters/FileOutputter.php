@@ -38,8 +38,8 @@ class FileOutputter implements Outputter
     {
         if (empty($filename)) {
             throw new InvalidArgumentException('The filename wasn\'t given.');
-        } elseif (!file_exists($filename) || !is_writable($filename)) {
-            throw new InvalidArgumentException('The file cannot be written.');
+        } elseif (file_exists($filename) && !is_writable($filename)) {
+            throw new InvalidArgumentException('The file cannot be rewritten.');
         } elseif (file_exists($filename) && !is_file($filename)) {
             throw new InvalidArgumentException('The file cannot be written. The path is a directory.');
         }
@@ -67,6 +67,8 @@ class FileOutputter implements Outputter
      */
     protected function save(): void
     {
-        file_put_contents($this->filename, $this->outputter->getOutput());
+        if (file_put_contents($this->filename, $this->outputter->getOutput()) === false) {
+            throw new InvalidArgumentException('The file wasn\'t written.');
+        }
     }
 }
