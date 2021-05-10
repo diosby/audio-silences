@@ -2,33 +2,50 @@
 
 namespace SegmentGenerator\App;
 
-use SegmentGenerator\ChapterGenerators\ChapterGeneratorByAnalyzer;
-use SegmentGenerator\ChapterSegmentators\ChapterSegmentator;
-use SegmentGenerator\Contracts\Outputter;
-use SegmentGenerator\Contracts\SegmentGeneratorFacade;
-use SegmentGenerator\Contracts\SilenceSegmentator;
-use SegmentGenerator\Entities\Interval;
-use SegmentGenerator\Entities\Silence;
-use SegmentGenerator\Outputters\Decorators\ArrayBase;
-use SegmentGenerator\Outputters\Decorators\ArrayWrapperDecorator;
-use SegmentGenerator\Outputters\Decorators\JsonDecorator;
-use SegmentGenerator\Outputters\FileOutputter;
-use SegmentGenerator\Outputters\StdOutputter;
-use SegmentGenerator\SilenceAnalyzers\SilenceAnalyzerByMinTransition;
-use SegmentGenerator\SilenceSegmentators\SilenceSegmentatorByChapters;
+use SegmentGenerator\Contracts\GeneratorSettings;
 
-class CLIFacade implements SegmentGeneratorFacade
+class CLIGeneratorSettings implements GeneratorSettings
 {
+    /**
+     * A source file.
+     *
+     * @var string
+     */
     private $source;
 
+    /**
+     * A chapter transition. It is a silence duration which reliably indicates a chapter transition.
+     *
+     * @var int|null
+     */
     private $transition;
 
+    /**
+     * A minimal silence between parts (segments) in a chapter which can be used to split a long chapter
+     *
+     * @var int|null
+     */
     private $minSilence;
 
+    /**
+     * A duration of a segment in multiple segments after which the chapter will be broken up.
+     *
+     * @var int|null
+     */
     private $maxDuration;
 
+    /**
+     * An output file with the result.
+     *
+     * @var string|null
+     */
     private $output;
 
+    /**
+     * A debug mode.
+     *
+     * @var bool
+     */
     private $debug;
 
     public function __construct()
@@ -41,7 +58,7 @@ class CLIFacade implements SegmentGeneratorFacade
         $shortopts .= 's:';
         $longopts[] = 'source:';
 
-        // A chapter transition. It is a silence duration which reliably indicates a chapter transition.
+        // A chapter transition.
         $shortopts .= 't:';
         $longopts[] = 'transition:';
 
@@ -83,45 +100,43 @@ class CLIFacade implements SegmentGeneratorFacade
         if (!file_exists($this->source)) {
             exit("The $this->source file doesn't exist.\n");
         }
-    }
 
-    function getSilences(): iterable
-    {
-        if (!file_exists($this->source)) {
-            exit("The $this->source file doesn't exist.\n");
+        if (!is_readable($this->source)) {
+            exit("The $this->source file isn't readable.\n");
         }
 
-        $xml = simplexml_load_file($this->source);
-        /** @var Silence[] $silences */
-        $silences = [];
-
-        foreach ($xml as $item) {
-            $silences[] = new Silence(new Interval($item['from']), new Interval($item['until']));
+        if (!is_file($this->source)) {
+            exit("The $this->source file isn't a file.\n");
         }
-
-        return $silences;
     }
 
-    function getSegmentator(): SilenceSegmentator
+    public function getSource(): string
     {
-        $analyzer = new SilenceAnalyzerByMinTransition($this->transition);
-        $chapterGenerator = new ChapterGeneratorByAnalyzer($analyzer);
-        $chapterSegmentator = new ChapterSegmentator($this->maxDuration, $this->minSilence);
-        $silenceSegmentator = new SilenceSegmentatorByChapters($chapterGenerator, $chapterSegmentator);
-
-        return $silenceSegmentator;
+        return $this->source;
     }
 
-    public function getOutputter(): Outputter
+    public function getTransition(): ?int
     {
-        $decorators = new JsonDecorator(new ArrayWrapperDecorator(new ArrayBase()));
+        return $this->transition;
+    }
 
-        if (isset($this->output)) {
-            $outputter = new FileOutputter($this->output, $decorators);
-        } else {
-            $outputter = new StdOutputter($decorators);
-        }
+    public function getMinSilence(): ?int
+    {
+        return $this->minSilence;
+    }
 
-        return $outputter;
+    public function getMaxSegment(): ?int
+    {
+        return $this->maxDuration;
+    }
+
+    public function getOutput(): ?string
+    {
+        return $this->output;
+    }
+
+    public function isDebug(): bool
+    {
+        return $this->debug;
     }
 }

@@ -1,7 +1,8 @@
 <?php
 
 use SegmentGenerator\App\Application;
-use SegmentGenerator\App\CLIFacade;
+use SegmentGenerator\App\CLIGeneratorSettings;
+use SegmentGenerator\App\SettableFacade;
 
 require __DIR__ . '/vendor/autoload.php';
 
@@ -15,6 +16,7 @@ require __DIR__ . '/vendor/autoload.php';
  * The segment is grouped parts of a chapter that has an offset from a last segment.
  */
 
-$facade = new CLIFacade;
+$settings = new CLIGeneratorSettings;
+$facade = new SettableFacade($settings);
 $app = new Application($facade);
 $app->run();
