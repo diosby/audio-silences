@@ -27,6 +27,27 @@ class SettableFacade implements SegmentGeneratorFacade
      */
     private $settings;
 
+    /**
+     * Read silences.
+     *
+     * @var Silence[]
+     */
+    private $silences;
+
+    /**
+     * A silence segmentator.
+     *
+     * @var SilenceSegmentator
+     */
+    private $segmentator;
+
+    /**
+     * An outputter.
+     *
+     * @var Outputter
+     */
+    private $outputter;
+
     public function __construct(GeneratorSettings $settings)
     {
         $this->settings = $settings;
@@ -34,8 +55,21 @@ class SettableFacade implements SegmentGeneratorFacade
 
     function getSilences(): iterable
     {
+        if (!isset($this->silences)) {
+            $this->silences = $this->newSilences();
+        }
+
+        return $this->silences;
+    }
+
+    /**
+     * Reads and initializes silences.
+     *
+     * @return iterable
+     */
+    protected function newSilences(): iterable
+    {
         $xml = simplexml_load_file($this->settings->getSource());
-        /** @var Silence[] $silences */
         $silences = [];
 
         foreach ($xml as $item) {
@@ -45,26 +79,51 @@ class SettableFacade implements SegmentGeneratorFacade
         return $silences;
     }
 
-    function getSegmentator(): SilenceSegmentator
+    public function getSegmentator(): SilenceSegmentator
+    {
+        if (!isset($this->segmentator)) {
+            $this->segmentator = $this->newSegmentator();
+        }
+
+        return $this->segmentator;
+    }
+
+    /**
+     * Initializes a new silence segmentator.
+     *
+     * @return SilenceSegmentator
+     */
+    protected function newSegmentator(): SilenceSegmentator
     {
         $analyzer = new SilenceAnalyzerByMinTransition($this->settings->getTransition());
         $chapterGenerator = new ChapterGeneratorByAnalyzer($analyzer);
         $chapterSegmentator = new ChapterSegmentator($this->settings->getMaxSegment(), $this->settings->getMinSilence());
-        $silenceSegmentator = new SilenceSegmentatorByChapters($chapterGenerator, $chapterSegmentator);
 
-        return $silenceSegmentator;
+        return new SilenceSegmentatorByChapters($chapterGenerator, $chapterSegmentator);
     }
 
     public function getOutputter(): Outputter
     {
+        if (!isset($this->outputter)) {
+            $this->outputter = $this->newOutputter();
+        }
+
+        return $this->outputter;
+    }
+
+    /**
+     * Initializes a new outputter.
+     *
+     * @return Outputter
+     */
+    protected function newOutputter(): Outputter
+    {
         $decorators = new JsonDecorator(new ArrayWrapperDecorator(new ArrayBase()));
 
         if ($this->settings->getOutput()) {
-            $outputter = new FileOutputter($this->settings->getOutput(), $decorators);
-        } else {
-            $outputter = new StdOutputter($decorators);
+            return new FileOutputter($this->settings->getOutput(), $decorators);
         }
 
-        return $outputter;
+        return new StdOutputter($decorators);
     }
 }
