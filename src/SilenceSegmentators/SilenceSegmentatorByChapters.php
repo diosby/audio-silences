@@ -4,15 +4,15 @@ namespace SegmentGenerator\SilenceSegmentators;
 
 use SegmentGenerator\Contracts\ChapterGenerator;
 use SegmentGenerator\Contracts\ChapterSegmentator;
-use SegmentGenerator\Contracts\SilenceSegmentator;
 use SegmentGenerator\Entities\ChapterCollection;
 use SegmentGenerator\Entities\SegmentCollection;
 use SegmentGenerator\Entities\Silence;
+use SegmentGenerator\SilenceSegmentators\Contracts\SilenceSegmentatorWithChapters;
 
 /**
  * Segments silences by generated chapters.
  */
-class SilenceSegmentatorByChapters implements SilenceSegmentator
+class SilenceSegmentatorByChapters implements SilenceSegmentatorWithChapters
 {
     /**
      * An instance of ChapterGenerator.

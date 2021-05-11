@@ -17,7 +17,7 @@ interface SegmentGeneratorFacade
     public function getSilences(): iterable;
 
     /**
-     * Returns a silence segmenrator.
+     * Returns a silence segmentator.
      *
      * @return SilenceSegmentator
      */
