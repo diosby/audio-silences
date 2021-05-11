@@ -5,11 +5,13 @@ namespace SegmentGenerator\App;
 use SegmentGenerator\ChapterGenerators\ChapterGeneratorByAnalyzer;
 use SegmentGenerator\ChapterSegmentators\ChapterSegmentator;
 use SegmentGenerator\Contracts\GeneratorSettings;
+use SegmentGenerator\Contracts\Logger;
 use SegmentGenerator\Contracts\Outputter;
 use SegmentGenerator\Contracts\SegmentGeneratorFacade;
 use SegmentGenerator\Contracts\SilenceSegmentator;
 use SegmentGenerator\Entities\Interval;
 use SegmentGenerator\Entities\Silence;
+use SegmentGenerator\Loggers\NullLogger;
 use SegmentGenerator\Loggers\ScreenLogger;
 use SegmentGenerator\Outputters\Decorators\ArrayBase;
 use SegmentGenerator\Outputters\Decorators\ArrayWrapperDecorator;
@@ -18,7 +20,6 @@ use SegmentGenerator\Outputters\FileOutputter;
 use SegmentGenerator\Outputters\StdOutputter;
 use SegmentGenerator\SilenceAnalyzers\SilenceAnalyzerByMinTransition;
 use SegmentGenerator\SilenceSegmentators\SilenceSegmentatorByChapters;
-use SegmentGenerator\SilenceSegmentators\SilenceSegmentatorWithLogger;
 
 class SettableFacade implements SegmentGeneratorFacade
 {
@@ -50,9 +51,17 @@ class SettableFacade implements SegmentGeneratorFacade
      */
     private $outputter;
 
+    /**
+     * A logger.
+     *
+     * @var Logger
+     */
+    private $logger;
+
     public function __construct(GeneratorSettings $settings)
     {
         $this->settings = $settings;
+        $this->logger = $settings->isDebug() ? new ScreenLogger : new NullLogger;
     }
 
     function getSilences(): iterable
@@ -100,11 +109,7 @@ class SettableFacade implements SegmentGeneratorFacade
         $analyzer = new SilenceAnalyzerByMinTransition($this->settings->getTransition());
         $chapterGenerator = new ChapterGeneratorByAnalyzer($analyzer);
         $chapterSegmentator = new ChapterSegmentator($this->settings->getMaxSegment(), $this->settings->getMinSilence());
-        $silenceSegmentator = new SilenceSegmentatorByChapters($chapterGenerator, $chapterSegmentator);
-
-        if ($this->settings->isDebug()) {
-            $silenceSegmentator = new SilenceSegmentatorWithLogger($silenceSegmentator, new ScreenLogger);
-        }
+        $silenceSegmentator = new SilenceSegmentatorByChapters($chapterGenerator, $chapterSegmentator, $this->logger);
 
         return $silenceSegmentator;
     }
