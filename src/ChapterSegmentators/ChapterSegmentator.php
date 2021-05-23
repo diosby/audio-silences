@@ -37,7 +37,14 @@ class ChapterSegmentator implements SegmentatorInterface
 
     private $segments = [];
 
-    public function __construct(int $maxSegment = null, int $minSilence = null)
+
+    /**
+     * An index of the current handled chapter part.
+     *
+     * @var int|string
+     */
+    protected $chapterPartIndex;
+
     {
         $this->chapterAnalyzer = new ChapterAnalyzer($maxSegment, $minSilence);
     }
@@ -105,19 +112,33 @@ class ChapterSegmentator implements SegmentatorInterface
         $numberOfPart = 0;
         $segmentDuration = 0;
 
-        foreach ($chapter->getParts() as $part) {
-            if ($this->chapterAnalyzer->isLongSeparablePart($part)) {
-                $this->addLongSegment($part, ++$numberOfPart, $segmentDuration);
-            } elseif ($segmentDuration === 0) {
-                $this->startMultipleSegment($part, ++$numberOfPart, $segmentDuration);
-            } elseif ($this->chapterAnalyzer->isSegmentOverloaded($segmentDuration, $part)) {
-                $this->addOverloadedSegment($part, ++$numberOfPart, $segmentDuration);
-            } elseif ($part->getDuration() === 0) {
-                $this->addLastEmptySegment($part, ++$numberOfPart);
-            } else {
-                $this->addIntermediateSegment($part, $segmentDuration);
-            }
+        foreach ($chapter->getParts() as $this->chapterPartIndex => $part) {
+            $this->handlePart($part, $numberOfPart, $segmentDuration);
         }
+    }
+
+    /**
+     * Handles the given chapter part of the multiple chapter.
+     *
+     * @param ChapterPart $part
+     * @param int $numberOfPart
+     * @param int $segmentDuration
+     * @return void
+     */
+    protected function handlePart(ChapterPart $part, int &$numberOfPart, int &$segmentDuration): void
+    {
+        if ($this->chapterAnalyzer->isLongSeparablePart($part)) {
+            $this->addLongSegment($part, ++$numberOfPart, $segmentDuration);
+        } elseif ($segmentDuration === 0) {
+            $this->startMultipleSegment($part, ++$numberOfPart, $segmentDuration);
+        } elseif ($this->chapterAnalyzer->isSegmentOverloaded($segmentDuration, $part)) {
+            $this->addOverloadedSegment($part, ++$numberOfPart, $segmentDuration);
+        } elseif ($part->getDuration() === 0) {
+            $this->addLastEmptySegment($part, ++$numberOfPart);
+        } else {
+            $this->addIntermediateSegment($part, $segmentDuration);
+        }
+    }
     }
 
     /**
