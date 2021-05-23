@@ -105,26 +105,89 @@ class ChapterSegmentator implements SegmentatorInterface
         $numberOfPart = 0;
         $segmentDuration = 0;
 
-        foreach ($chapter->getParts() as $key => $part) {
+        foreach ($chapter->getParts() as $part) {
             if ($this->chapterAnalyzer->isLongSeparablePart($part)) {
-                // It is a big segment.
-                $this->addSegment($part, ++$numberOfPart);
-                $segmentDuration = 0;
+                $this->addLongSegment($part, ++$numberOfPart, $segmentDuration);
             } elseif ($segmentDuration === 0) {
-                // It is a start segment of the multiple segments.
-                $this->addSegment($part, ++$numberOfPart);
-                $segmentDuration += $part->getDurationWithLeftSilence();
+                $this->startMultipleSegment($part, ++$numberOfPart, $segmentDuration);
             } elseif ($this->chapterAnalyzer->isSegmentOverloaded($segmentDuration, $part)) {
-                // The segment duration is overloaded by the duration of the chapter part and its left silence.
-                $this->addSegment($part, ++$numberOfPart);
-                $segmentDuration = 0;
+                $this->addOverloadedSegment($part, ++$numberOfPart, $segmentDuration);
             } elseif ($part->getDuration() === 0) {
-                // The last empty segment that has an empty duration.
-                $this->addSegment($part, ++$numberOfPart);
+                $this->addLastEmptySegment($part, ++$numberOfPart);
             } else {
-                $segmentDuration += $part->getDurationWithLeftSilence();
+                $this->addIntermediateSegment($part, $segmentDuration);
             }
         }
+    }
+
+    /**
+     * Adds the given segment as a long segment.
+     *
+     * @param ChapterPart $part
+     * @param int $numberOfPart
+     * @param int $segmentDuration
+     * @return void
+     */
+    protected function addLongSegment(ChapterPart $part, int $numberOfPart, int &$segmentDuration): void
+    {
+        $this->addSegment($part, $numberOfPart);
+        $segmentDuration = 0;
+    }
+
+    /**
+     * Starts a new multiple segment by the given start segment of the these
+     * segments.
+     *
+     * @param ChapterPart $part
+     * @param int $numberOfPart
+     * @param int $segmentDuration
+     * @return void
+     */
+    protected function startMultipleSegment(ChapterPart $part, int $numberOfPart, int &$segmentDuration): void
+    {
+        $this->addSegment($part, $numberOfPart);
+        $segmentDuration += $part->getDurationWithLeftSilence();
+    }
+
+    /**
+     * Adds the given segment that overloads the current segment duration.
+     * The segment duration is overloaded by the duration of the chapter part
+     * and its left silence.
+     *
+     * @param ChapterPart $part
+     * @param int $numberOfPart
+     * @param int $segmentDuration
+     * @return void
+     */
+    protected function addOverloadedSegment(ChapterPart $part, int $numberOfPart, int &$segmentDuration): void
+    {
+        $this->addSegment($part, $numberOfPart);
+        $segmentDuration = 0;
+    }
+
+    /**
+     * Add the last empty segment.
+     * The last empty segment has an empty duration.
+     *
+     * @param ChapterPart $part
+     * @param int $numberOfPart
+     * @return void
+     */
+    protected function addLastEmptySegment(ChapterPart $part, int $numberOfPart): void
+    {
+        $this->addSegment($part, ++$numberOfPart);
+    }
+
+    /**
+     * Adds an intermediate segment of the multiple segment.
+     *
+     * @param ChapterPart $part
+     * @param int $segmentDuration
+     * @return void
+     */
+    protected function addIntermediateSegment(ChapterPart $part, int &$segmentDuration): void
+    {
+        $segmentDuration += $part->getDurationWithLeftSilence();
     }
 
     /**
