@@ -59,6 +59,26 @@ class ChapterGeneratorByAnalyzer implements ChapterGenerator
     }
 
     /**
+     * Returns a silence analyzer.
+     *
+     * @return SilenceAnalyzer
+     */
+    public function getAnalyzer(): SilenceAnalyzer
+    {
+        return $this->analyzer;
+    }
+
+    /**
+     * Returns a logger.
+     *
+     * @return Logger
+     */
+    public function getLogger(): Logger
+    {
+        return $this->logger;
+    }
+
+    /**
      * Generates a chapter collection from the given silences.
      *
      * @param Silence[] $silences
