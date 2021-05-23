@@ -107,7 +107,7 @@ class SettableFacade implements SegmentGeneratorFacade
     protected function newSegmentator(): SilenceSegmentator
     {
         $analyzer = new SilenceAnalyzerByMinTransition($this->settings->getTransition());
-        $chapterGenerator = new ChapterGeneratorByAnalyzer($analyzer);
+        $chapterGenerator = new ChapterGeneratorByAnalyzer($analyzer, $this->logger);
         $chapterSegmentator = new ChapterSegmentator($this->settings->getMaxSegment(), $this->settings->getMinSilence());
         $silenceSegmentator = new SilenceSegmentatorByChapters($chapterGenerator, $chapterSegmentator, $this->logger);
 
