@@ -2,11 +2,11 @@
 
 namespace SegmentGenerator\ChapterSegmentators;
 
+use SegmentGenerator\ChapterSegmentators\Contracts\DescriberOfChapterSegmentator;
+use SegmentGenerator\ChapterSegmentators\Contracts\SegmentTitleMaker;
 use SegmentGenerator\Contracts\ChapterSegmentator as SegmentatorInterface;
 use SegmentGenerator\Entities\Chapter;
 use SegmentGenerator\Entities\ChapterCollection;
-use SegmentGenerator\Entities\ChapterPart;
-use SegmentGenerator\Entities\Segment;
 use SegmentGenerator\Entities\SegmentCollection;
 
 /**
@@ -15,58 +15,80 @@ use SegmentGenerator\Entities\SegmentCollection;
 class ChapterSegmentator implements SegmentatorInterface
 {
     /**
+     * A describer.
+     *
+     * @var DescriberOfChapterSegmentator
+     */
+    protected $describer;
+
+    /**
      * A chapter analyzer.
      *
      * @var ChapterAnalyzer
      */
     protected $chapterAnalyzer;
-    /**
-     * A recommended maximal duration of a segment.
-     *
-     * @var int|null
-     */
-    protected $maxSegment;
 
     /**
-     * A minimal duration of a silence between parts (segments) in a chapter
-     * which can be used to split a long chapter.
+     * A title maker.
      *
-     * @var int|null
+     * @var SegmentTitleMaker
      */
-    protected $minSilence;
-
-    private $segments = [];
-
+    protected $titleMaker;
 
     /**
-     * An index of the current handled chapter part.
+     * A multiple chapter segmentator.
      *
-     * @var int|string
+     * @var MultipleChapterSegmentator
      */
-    protected $chapterPartIndex;
+    protected $multipleChapterSegmentator;
 
-    {
-        $this->chapterAnalyzer = new ChapterAnalyzer($maxSegment, $minSilence);
+    /**
+     * Segments of the handled chapters.
+     *
+     * @var SegmentCollection
+     */
+    protected $segments;
+
+    public function __construct(
+        ChapterAnalyzer $chapterAnalyzer,
+        DescriberOfChapterSegmentator $describer,
+        MultipleChapterSegmentator $multipleChapterSegmentator,
+        SegmentTitleMaker $titleMaker
+    ) {
+        $this->chapterAnalyzer = $chapterAnalyzer;
+        $this->describer = $describer;
+        $this->multipleChapterSegmentator = $multipleChapterSegmentator;
+        $this->titleMaker = $titleMaker;
     }
 
     /**
-     * A recommended max duration of a segment.
+     * Returns a chapter analyzer.
      *
-     * @return int|null
+     * @return ChapterAnalyzer
      */
-    public function getMaxDurationOfSegment(): ?int
+    public function getChapterAnalyzer(): ChapterAnalyzer
     {
-        return $this->chapterAnalyzer->getMaxDurationOfSegment();
+        return $this->chapterAnalyzer;
     }
 
     /**
-     * Returns a min duration of a silence between segments.
+     * Returns a describer.
      *
-     * @return int|null
+     * @return DescriberOfChapterSegmentator
      */
-    public function getMinSilence(): ?int
+    public function getDescriber(): DescriberOfChapterSegmentator
     {
-        return $this->chapterAnalyzer->getMinSilence();
+        return $this->describer;
+    }
+
+    /**
+     * Returns a segment title maker.
+     *
+     * @return SegmentTitleMaker
+     */
+    public function getTitleMaker(): SegmentTitleMaker
+    {
+        return $this->titleMaker;
     }
 
     /**
@@ -77,17 +99,44 @@ class ChapterSegmentator implements SegmentatorInterface
      */
     public function segment(ChapterCollection $chapters): SegmentCollection
     {
-        $this->segments = [];
+        $this->segments = new SegmentCollection();
+        $this->describer->describerChapters($chapters);
 
-        foreach ($chapters->getItems() as $chapter) {
-            if ($this->chapterAnalyzer->isUnbreakable($chapter)) {
-                $this->pushFullChapter($chapter);
-            } else {
-                $this->pushMultipleChapter($chapter);
-            }
+        foreach ($chapters->getItems() as $chapterIndex => $chapter) {
+            $this->describer->setChapterIndex($chapterIndex);
+            $this->describer->describerChapter($chapter);
+            $this->segmentChapter($chapter);
         }
 
-        return new SegmentCollection($this->segments);
+        $this->describer->describeSegments($this->segments);
+
+        return $this->segments;
+    }
+
+    /**
+     * Segments the given chapter.
+     *
+     * @param Chapter $chapter
+     * @return void
+     */
+    protected function segmentChapter(Chapter $chapter): void
+    {
+        if ($this->isUnbreakable($chapter)) {
+            $this->pushFullChapter($chapter);
+        } else {
+            $this->pushMultipleChapter($chapter);
+        }
+    }
+
+    /**
+     * Checks whether the given chapter is unbreakable.
+     *
+     * @param Chapter $chapter
+     * @return bool
+     */
+    public function isUnbreakable(Chapter $chapter): bool
+    {
+        return $this->chapterAnalyzer->isUnbreakable($chapter);
     }
 
     /**
@@ -96,9 +145,10 @@ class ChapterSegmentator implements SegmentatorInterface
      * @param Chapter $chapter
      * @return void
      */
-    public function pushFullChapter(Chapter $chapter): void
+    protected function pushFullChapter(Chapter $chapter): void
     {
-        $this->segments[] = new Segment($chapter->getOffset(), $chapter->getTitle());
+        $this->describer->describeFullChapter($chapter);
+        $this->segments->add($chapter->getOffset(), $this->titleMaker->fromChapter($chapter));
     }
 
     /**
@@ -107,123 +157,8 @@ class ChapterSegmentator implements SegmentatorInterface
      * @param Chapter $chapter
      * @return void
      */
-    public function pushMultipleChapter(Chapter $chapter): void
+    protected function pushMultipleChapter(Chapter $chapter): void
     {
-        $numberOfPart = 0;
-        $segmentDuration = 0;
-
-        foreach ($chapter->getParts() as $this->chapterPartIndex => $part) {
-            $this->handlePart($part, $numberOfPart, $segmentDuration);
-        }
-    }
-
-    /**
-     * Handles the given chapter part of the multiple chapter.
-     *
-     * @param ChapterPart $part
-     * @param int $numberOfPart
-     * @param int $segmentDuration
-     * @return void
-     */
-    protected function handlePart(ChapterPart $part, int &$numberOfPart, int &$segmentDuration): void
-    {
-        if ($this->chapterAnalyzer->isLongSeparablePart($part)) {
-            $this->addLongSegment($part, ++$numberOfPart, $segmentDuration);
-        } elseif ($segmentDuration === 0) {
-            $this->startMultipleSegment($part, ++$numberOfPart, $segmentDuration);
-        } elseif ($this->chapterAnalyzer->isSegmentOverloaded($segmentDuration, $part)) {
-            $this->addOverloadedSegment($part, ++$numberOfPart, $segmentDuration);
-        } elseif ($part->getDuration() === 0) {
-            $this->addLastEmptySegment($part, ++$numberOfPart);
-        } else {
-            $this->addIntermediateSegment($part, $segmentDuration);
-        }
-    }
-    }
-
-    /**
-     * Adds the given segment as a long segment.
-     *
-     * @param ChapterPart $part
-     * @param int $numberOfPart
-     * @param int $segmentDuration
-     * @return void
-     */
-    protected function addLongSegment(ChapterPart $part, int $numberOfPart, int &$segmentDuration): void
-    {
-        $this->addSegment($part, $numberOfPart);
-        $segmentDuration = 0;
-    }
-
-    /**
-     * Starts a new multiple segment by the given start segment of the these
-     * segments.
-     *
-     * @param ChapterPart $part
-     * @param int $numberOfPart
-     * @param int $segmentDuration
-     * @return void
-     */
-    protected function startMultipleSegment(ChapterPart $part, int $numberOfPart, int &$segmentDuration): void
-    {
-        $this->addSegment($part, $numberOfPart);
-        $segmentDuration += $part->getDurationWithLeftSilence();
-    }
-
-    /**
-     * Adds the given segment that overloads the current segment duration.
-     * The segment duration is overloaded by the duration of the chapter part
-     * and its left silence.
-     *
-     * @param ChapterPart $part
-     * @param int $numberOfPart
-     * @param int $segmentDuration
-     * @return void
-     */
-    protected function addOverloadedSegment(ChapterPart $part, int $numberOfPart, int &$segmentDuration): void
-    {
-        $this->addSegment($part, $numberOfPart);
-        $segmentDuration = 0;
-    }
-
-    /**
-     * Add the last empty segment.
-     * The last empty segment has an empty duration.
-     *
-     * @param ChapterPart $part
-     * @param int $numberOfPart
-     * @return void
-     */
-    protected function addLastEmptySegment(ChapterPart $part, int $numberOfPart): void
-    {
-        $this->addSegment($part, ++$numberOfPart);
-    }
-
-    /**
-     * Adds an intermediate segment of the multiple segment.
-     *
-     * @param ChapterPart $part
-     * @param int $segmentDuration
-     * @return void
-     */
-    protected function addIntermediateSegment(ChapterPart $part, int &$segmentDuration): void
-    {
-        $segmentDuration += $part->getDurationWithLeftSilence();
-    }
-
-    /**
-     * Adds a new segment by the given chapter part and returns it.
-     *
-     * @param ChapterPart $part
-     * @param int $volume
-     * @return Segment
-     */
-    public function addSegment(ChapterPart $part, int $volume): Segment
-    {
-        $this->segments[] = $lastSegment = new Segment($part->getOffset(), $part->getParent()->getTitle());
-        $title = $lastSegment->getTitle() ? $lastSegment->getTitle() . ", part $volume" : "Part $volume";
-        $lastSegment->setTitle($title);
-
-        return $lastSegment;
+        $this->multipleChapterSegmentator->segment($chapter, $this->segments);
     }
 }
