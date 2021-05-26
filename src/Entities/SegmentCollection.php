@@ -32,6 +32,18 @@ class SegmentCollection implements \Countable
     }
 
     /**
+     * Adds the given interval and given title.
+     *
+     * @param Interval $interval
+     * @param string $title
+     * @return Segment
+     */
+    public function add(Interval $interval, string $title = null): Segment
+    {
+        return $this->items[] = new Segment($interval, $title);
+    }
+
+    /**
      * Returns segments of the collection.
      *
      * @return Segment[]
