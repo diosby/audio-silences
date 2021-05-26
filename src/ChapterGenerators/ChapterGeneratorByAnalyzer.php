@@ -3,7 +3,6 @@
 namespace SegmentGenerator\ChapterGenerators;
 
 use SegmentGenerator\Contracts\ChapterGenerator;
-use SegmentGenerator\Contracts\Logger;
 use SegmentGenerator\Contracts\SilenceAnalyzer;
 use SegmentGenerator\Entities\Chapter;
 use SegmentGenerator\Entities\ChapterCollection;
@@ -32,11 +31,11 @@ class ChapterGeneratorByAnalyzer implements ChapterGenerator
     protected $analyzer;
 
     /**
-     * A logger.
+     * A describer.
      *
-     * @var Logger
+     * @var DescriberOfChapterGenerator
      */
-    protected $logger;
+    protected $describer;
 
     /**
      * A chapter index of the current handling.
@@ -52,10 +51,10 @@ class ChapterGeneratorByAnalyzer implements ChapterGenerator
      */
     private $chapters = [];
 
-    public function __construct(SilenceAnalyzer $analyzer, Logger $logger)
+    public function __construct(SilenceAnalyzer $analyzer, DescriberOfChapterGenerator $describer)
     {
         $this->analyzer = $analyzer;
-        $this->logger = $logger;
+        $this->describer = $describer;
     }
 
     /**
@@ -69,13 +68,13 @@ class ChapterGeneratorByAnalyzer implements ChapterGenerator
     }
 
     /**
-     * Returns a logger.
+     * Returns a describer.
      *
-     * @return Logger
+     * @return DescriberOfChapterGenerator
      */
-    public function getLogger(): Logger
+    public function getDescriber(): DescriberOfChapterGenerator
     {
-        return $this->logger;
+        return $this->describer;
     }
 
     /**
@@ -102,69 +101,22 @@ class ChapterGeneratorByAnalyzer implements ChapterGenerator
      */
     public function handleSilence(Silence $silence, $silenceIndex): int
     {
-        $this->describeSilence($silence, $silenceIndex);
+        $this->describer
+            ->setSilenceIndex($silenceIndex)
+            ->describeSilence($silence)
+        ;
 
         if ($this->analyzer->isTransition($silence)) {
-            $this->describeTransition($silence, $silenceIndex);
+            $this->describer->describeTransition($silence);
             $this->finishChapter($silence);
 
             return self::TRANSITION;
         }
 
-        $this->describePause($silence, $silenceIndex);
+        $this->describer->describePause($silence);
         $this->nextPart($silence);
 
         return self::NOT_TRANSITION;
-    }
-
-    /**
-     * Describes the given silence.
-     *
-     * @param Silence $silence
-     * @param int|string $silenceIndex
-     * @return void
-     */
-    protected function describeSilence(Silence $silence, $silenceIndex): void
-    {
-        $this->logger->log(
-            "Silence #%s: %d ms, from %s until %s.\n",
-            $silenceIndex,
-            $silence->getDuration(),
-            (string) $silence->getFrom(),
-            (string) $silence->getUntil()
-        );
-    }
-
-    /**
-     * Describes the given transition.
-     *
-     * @param Silence $silence
-     * @param int|string $silenceIndex
-     * @return void
-     */
-    protected function describeTransition(Silence $silence, $silenceIndex): void
-    {
-        $this->logger->log(
-            "Silence #%s is the transition: %d ms.\n",
-            $silenceIndex,
-            $silence->getDuration()
-        );
-    }
-
-    /**
-     * Describes the given pause.
-     *
-     * @param Silence $silence
-     * @param int|string $silenceIndex
-     * @return void
-     */
-    protected function describePause(Silence $silence, $silenceIndex): void
-    {
-        $this->logger->log(
-            "Silence #%s is the pause: %d ms.\n",
-            $silenceIndex,
-            $silence->getDuration()
-        );
     }
 
     /**
@@ -227,7 +179,6 @@ class ChapterGeneratorByAnalyzer implements ChapterGenerator
     protected function reset(): void
     {
         $this->chapters = [];
-        $this->silenceIndex = 0;
         $this->chapterIndex = 0;
     }
 }
