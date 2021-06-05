@@ -24,7 +24,7 @@ interface SegmentGeneratorFacade
     public function getSegmentator(): SilenceSegmentator;
 
     /**
-     * Returns an outputter
+     * Returns an outputter.
      *
      * @return Outputter
      */
